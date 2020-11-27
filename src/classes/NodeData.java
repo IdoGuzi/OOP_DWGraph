@@ -3,6 +3,19 @@ import api.geo_location;
 import api.node_data;
 
 public class NodeData implements node_data {
+    private int key,tag;
+    private geo_location location;
+    private double weight;
+    public String info;
+
+    public NodeData(int key,double weight){   //default and copy constractors are not exist for now
+        this.key = key;
+        this.weight = weight;
+        this.info = "";
+        this.tag = -1;
+        this.location = new GeoLocation();
+    }
+
     /**
      * Returns the key (id) associated with this node.
      *
@@ -10,7 +23,7 @@ public class NodeData implements node_data {
      */
     @Override
     public int getKey() {
-        return 0;
+        return this.key;
     }
 
     /**
@@ -21,7 +34,7 @@ public class NodeData implements node_data {
      */
     @Override
     public geo_location getLocation() {
-        return null;
+        return this.location;
     }
 
     /**
@@ -31,7 +44,7 @@ public class NodeData implements node_data {
      */
     @Override
     public void setLocation(geo_location p) {
-
+        this.location = p;                      //** ??
     }
 
     /**
@@ -41,7 +54,7 @@ public class NodeData implements node_data {
      */
     @Override
     public double getWeight() {
-        return 0;
+        return this.weight;
     }
 
     /**
@@ -51,7 +64,7 @@ public class NodeData implements node_data {
      */
     @Override
     public void setWeight(double w) {
-
+        this.weight = w;
     }
 
     /**
@@ -61,7 +74,7 @@ public class NodeData implements node_data {
      */
     @Override
     public String getInfo() {
-        return null;
+        return this.info;
     }
 
     /**
@@ -71,7 +84,7 @@ public class NodeData implements node_data {
      */
     @Override
     public void setInfo(String s) {
-
+        this.info = s;
     }
 
     /**
@@ -82,7 +95,7 @@ public class NodeData implements node_data {
      */
     @Override
     public int getTag() {
-        return 0;
+        return this.tag;
     }
 
     /**
@@ -93,6 +106,80 @@ public class NodeData implements node_data {
      */
     @Override
     public void setTag(int t) {
-
+        this.tag = t;
     }
+
 }
+
+
+
+
+    class GeoLocation implements geo_location{
+        public double getX() {
+            return x;
+        }
+
+        public void setX(double x) {
+            this.x = x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public void setY(double y) {
+            this.y = y;
+        }
+
+        public double getZ() {
+            return z;
+        }
+
+        public void setZ(double z) {
+            this.z = z;
+        }
+
+        private double x;
+        private double y;
+        private double z;
+
+        public GeoLocation(double x , double y, double z){
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        public GeoLocation(geo_location g){
+            this.x = g.x();
+            this.y = g.y();
+            this.z = g.z();
+        }
+
+        public GeoLocation() {
+            x=0;
+            y=0;
+            z=0;
+        }
+
+        @Override
+        public double x() {
+            return x;
+        }
+
+        @Override
+        public double y() {
+            return y;
+        }
+
+        @Override
+        public double z() {
+            return z;
+        }
+
+        @Override
+        public double distance(geo_location g) {
+            return Math.sqrt(   ((x-g.x())*(x-g.x())) + ((y-g.y())*(y-g.y())) + ((z-g.z())*(z-g.z())));
+        }
+
+        public String toString() { return "( "+x+","+y+","+z+" )"; }
+    }
