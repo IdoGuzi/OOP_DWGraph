@@ -16,6 +16,24 @@ public class NodeData implements node_data {
         this.location = new GeoLocation();
     }
 
+    public NodeData(){
+        this.key = key;
+        this.weight = weight;
+        this.info = "";
+        this.tag = -1;
+        this.location = new GeoLocation();
+    }
+
+    public NodeData(int key){
+        this.key = key;
+        this.weight = weight;
+        this.info = "";
+        this.tag = -1;
+        this.location = new GeoLocation();
+    }
+
+
+
     /**
      * Returns the key (id) associated with this node.
      *
