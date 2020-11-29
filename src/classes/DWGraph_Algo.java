@@ -249,10 +249,11 @@ public class DWGraph_Algo implements dw_graph_algorithms {
     private Map<Integer,Integer> Dijksta(int src, int dest){
         clearTags();
         Map<Integer,Integer> prev = new HashMap<>();
+        prev.put(src,src);
         PriorityQueue<node_data> queue = new PriorityQueue<>(6,new NodeComperator());
+        graph.getNode(src).setWeight(0);
         queue.add(graph.getNode(src));
         graph.getNode(src).setTag(1);
-        prev.put(src,src);
         while (!queue.isEmpty()){
             node_data n = queue.poll();
             Iterator<edge_data> itr = graph.getE(n.getKey()).iterator();
