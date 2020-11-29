@@ -5,13 +5,13 @@ import api.dw_graph_algorithms;
 import api.edge_data;
 import api.node_data;
 
+import gameClient.util.Point3D;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 public class DWGraph_Algo implements dw_graph_algorithms {
@@ -101,12 +101,15 @@ public class DWGraph_Algo implements dw_graph_algorithms {
      */
     @Override
     public List<node_data> shortestPath(int src, int dest) {
+        //dijkstaoutput is the parent map of every node detected in the dijksta algo
         Map<Integer,Integer> dijkstaOutput = Dijksta(src,dest);
+        //will happen if dijksta not found dest (not in the same component as src)
         if (dijkstaOutput.get(dest)==null) return null;
         List<node_data> path = new LinkedList<>();
         node_data temp = graph.getNode(dest);
         path.add(0,temp);
-        while(dijkstaOutput.get(dest)!=dest){
+        //dijkstaoutput is map in a way that src is mapped to src
+        while(dijkstaOutput.get(temp.getKey())!=temp.getKey()){
             temp = graph.getNode(dijkstaOutput.get(temp.getKey()));
             path.add(0,temp);
         }
@@ -163,9 +166,6 @@ public class DWGraph_Algo implements dw_graph_algorithms {
         JSONObject jo = new JSONObject();
         JSONArray no = new JSONArray();
         JSONArray eo = new JSONArray();
-        jo.put("nodeSize", graph.nodeSize());
-        jo.put("edgeSize", graph.edgeSize());
-        jo.put("modeCount",graph.getMC());
         Iterator<node_data> itr = graph.getV().iterator();
         while (itr.hasNext()){
             node_data n = itr.next();
@@ -176,20 +176,20 @@ public class DWGraph_Algo implements dw_graph_algorithms {
                 eo.put(toJsonEdge(e));
             }
         }
-        jo.put("nodes",no);
-        jo.put("edges",eo);
+        jo.put("Nodes",no);
+        jo.put("Edges",eo);
         return jo.toString();
     }
 
 
     private void fromJsonGraph(JSONObject g) throws JSONException {
         this.graph = new DWGraph_DS();
-        JSONArray ja = g.getJSONArray("nodes");
+        JSONArray ja = g.getJSONArray("Nodes");
         int size = ja.length();
         for (int i=0;i<size;i++){
             fromJsonNode(ja.getJSONObject(i));
         }
-        ja = g.getJSONArray("edges");
+        ja = g.getJSONArray("Edges");
         size = ja.length();
         for (int i=0;i<size;i++){
             fromJsonEdge(ja.getJSONObject(i));
@@ -198,33 +198,30 @@ public class DWGraph_Algo implements dw_graph_algorithms {
 
     private JSONObject toJsonEdge(edge_data edge) throws JSONException {
         JSONObject jo = new JSONObject();
-        jo.put("source",edge.getSrc());
-        jo.put("destination",edge.getDest());
-        jo.put("weight",edge.getWeight());
+        jo.put("src",edge.getSrc());
+        jo.put("dest",edge.getDest());
+        jo.put("w",edge.getWeight());
         return jo;
     }
 
     private void fromJsonEdge(JSONObject edge) throws JSONException {
-        int n1=edge.getInt("source");
-        int n2=edge.getInt("destination");
-        double w = edge.getDouble("weight");
-        graph.connect(n1,n2,w);
+        int src=edge.getInt("src");
+        int dest=edge.getInt("dest");
+        double w = edge.getDouble("w");
+        graph.connect(src,dest,w);
     }
 
     private JSONObject toJsonNode(node_data n) throws JSONException {
         JSONObject jo = new JSONObject();
-        jo.put("key",n.getKey());
-        jo.put("info",n.getInfo());
-        jo.put("tag",n.getTag());
+        jo.put("id",n.getKey());
+        jo.put("pos",n.getLocation().toString());
         return jo;
     }
 
     private void fromJsonNode(JSONObject node) throws JSONException {
-        int key = node.getInt("key");
+        int key = node.getInt("id");
         graph.addNode(new NodeData(key));
-        graph.getNode(key).setInfo(node.getString("info"));
-        graph.getNode(key).setTag(node.getInt("tag"));
-
+        graph.getNode(key).setLocation(new Point3D(node.getString("pos")));
     }
 
     /**
