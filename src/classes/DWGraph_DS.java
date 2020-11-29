@@ -17,6 +17,9 @@ public class DWGraph_DS implements directed_weighted_graph {
     public DWGraph_DS() {
         nodes = new HashMap<>();
         edges = new HashMap<>();
+        edges_size = 0;
+        nodes_size = 0;
+        mc = 0;
     }
 
 
@@ -28,9 +31,7 @@ public class DWGraph_DS implements directed_weighted_graph {
      */
     @Override
     public node_data getNode(int key) {
-        if(nodes.containsKey(key))
-            return nodes.get(key);
-        return null;
+        return nodes.get(key);
     }
 
     /**
@@ -42,8 +43,8 @@ public class DWGraph_DS implements directed_weighted_graph {
      * @return
      */
     @Override
-    public edge_data getEdge(int src, int dest) {                      // go back to it
-        if(!(edges.containsKey(src) && edges.containsValue(dest))){
+    public edge_data getEdge(int src, int dest) {
+        if(!(nodes.containsKey(src) && edges.get(src).containsKey(dest) )){
             return null;
         }
 
@@ -63,7 +64,7 @@ public class DWGraph_DS implements directed_weighted_graph {
         }
         edges.put(n.getKey(),new HashMap<>());
 
-        nodes.put(n.getKey() ,n);        // nodes.put(n.getKey() , new NodeData( n.getKey() , n.getWeight()));   --Ido Recommends
+        nodes.put(n.getKey() ,n);
         nodes_size++;
     }
 
@@ -77,16 +78,17 @@ public class DWGraph_DS implements directed_weighted_graph {
      */
     @Override
     public void connect(int src, int dest, double w) {
+        if(w<0){
+            throw new IllegalArgumentException("ERROR: edges cant be negative weightes");
+        }
 
-        if(!(nodes.containsKey(src) && nodes.containsKey(dest)) && w<0){
+        if(!(nodes.containsKey(src) && nodes.containsKey(dest))){
             return;
         }
-        node_data n1 = nodes.get(src);
-        node_data n2 = nodes.get(dest);
-        edge_data edge = new EdgeDate(n1,n2,w);
-        edges.get(src).put(dest, edge);      //check it
-        edges_size++;
 
+        edge_data edge = new EdgeDate(src,dest,w);
+        edges.get(src).put(dest, edge);
+        edges_size++;
     }
 
     /**
@@ -112,11 +114,7 @@ public class DWGraph_DS implements directed_weighted_graph {
      */
     @Override
     public Collection<edge_data> getE(int node_id) {
-        HashMap<Integer , edge_data> edgesRet = new HashMap<>();
-        for (Integer i : edges.get(node_id).keySet()){
-            edgesRet.put(i,getEdge(node_id,i));
-        }
-        return edgesRet.values();
+        return edges.get(node_id).values();
     }
 
     /**
@@ -131,17 +129,12 @@ public class DWGraph_DS implements directed_weighted_graph {
     public node_data removeNode(int key) {
         if(!nodes.containsKey(key)){
             return null;
-
         }
-        Set<Integer> keySet = nodes.keySet();
-        for (int k: keySet) {
-            removeEdge(k,key);
-        }
+        int size = edges.get(key).size();
         edges.remove(key);
-        node_data n = nodes.remove(key);
-
+        edges_size -= size;
         nodes_size--;
-        return n;
+        return nodes.remove(key);
     }
 
     /**
@@ -199,27 +192,17 @@ public class DWGraph_DS implements directed_weighted_graph {
     public int getMC() {
         return mc;
     }
-}
 
 
-
-
-
-
-
-    class EdgeDate implements edge_data{
-        private node_data src,dest;
+     private class EdgeDate implements edge_data{
+        //change fron "node_data" types to "int" for space optimiztion
+        private int src,dest;
         private double weight;
         private String info;
         private int tag;
 
-        public EdgeDate (node_data src , node_data dest){
-            this.src = src;
-            this.dest = dest;
-            this.weight = src.getLocation().distance(dest.getLocation());          //??? test it
-         }
 
-        public EdgeDate(node_data src, node_data dest, double w) {
+        public EdgeDate(int src, int dest, double w) {
             this.src = src;
             this.dest = dest;
             this.weight = w;
@@ -232,7 +215,7 @@ public class DWGraph_DS implements directed_weighted_graph {
          */
         @Override
         public int getSrc() {
-            return src.getKey();
+            return src;
         }
 
         /**
@@ -242,7 +225,7 @@ public class DWGraph_DS implements directed_weighted_graph {
          */
         @Override
         public int getDest() {
-            return dest.getKey();
+            return dest;
         }
 
         /**
@@ -277,7 +260,7 @@ public class DWGraph_DS implements directed_weighted_graph {
          * Temporal data (aka color: e,g, white, gray, black)
          * which can be used be algorithms
          *
-         * @return
+         * @return temp data
          */
         @Override
         public int getTag() {
@@ -294,6 +277,8 @@ public class DWGraph_DS implements directed_weighted_graph {
         public void setTag(int t) {
             this.tag = t;
         }
+    }
+
 }
 
 
@@ -321,75 +306,7 @@ public class DWGraph_DS implements directed_weighted_graph {
 
 
 
-class EdgeData implements edge_data{
 
-    /**
-     * The id of the source node of this edge.
-     *
-     * @return
-     */
-    @Override
-    public int getSrc() {
-        return 0;
-    }
 
-    /**
-     * The id of the destination node of this edge
-     *
-     * @return
-     */
-    @Override
-    public int getDest() {
-        return 0;
-    }
 
-    /**
-     * @return the weight of this edge (positive value).
-     */
-    @Override
-    public double getWeight() {
-        return 0;
-    }
 
-    /**
-     * Returns the remark (meta data) associated with this edge.
-     *
-     * @return
-     */
-    @Override
-    public String getInfo() {
-        return null;
-    }
-
-    /**
-     * Allows changing the remark (meta data) associated with this edge.
-     *
-     * @param s
-     */
-    @Override
-    public void setInfo(String s) {
-
-    }
-
-    /**
-     * Temporal data (aka color: e,g, white, gray, black)
-     * which can be used be algorithms
-     *
-     * @return
-     */
-    @Override
-    public int getTag() {
-        return 0;
-    }
-
-    /**
-     * This method allows setting the "tag" value for temporal marking an edge - common
-     * practice for marking by algorithms.
-     *
-     * @param t - the new value of the tag
-     */
-    @Override
-    public void setTag(int t) {
-
-    }
-}

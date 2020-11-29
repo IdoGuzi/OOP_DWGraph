@@ -88,7 +88,7 @@ class DWGraph_AlgoTest {
     private directed_weighted_graph graph_factory(int nodes, int edges){
         directed_weighted_graph g = new DWGraph_DS();
         for (int i=0;i<nodes;i++){
-            g.addNode(new NodeData()); //to be continued;
+            g.addNode(new NodeData(i)); //to be continued;
         }
         while (g.edgeSize()<edges){
             int a = random(0,nodes);
