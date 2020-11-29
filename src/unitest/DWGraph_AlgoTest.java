@@ -99,6 +99,41 @@ class DWGraph_AlgoTest {
         return g;
     }
 
+    private directed_weighted_graph graph_factory(int graph){
+        directed_weighted_graph g = new DWGraph_DS();
+        if (graph==1){
+            g.addNode(new NodeData(0));
+            g.addNode(new NodeData(1));
+            g.addNode(new NodeData(2));
+            g.addNode(new NodeData(3));
+            g.addNode(new NodeData(4));
+            g.connect(0,1,3.1);
+            g.connect(3,1,2.1);
+            g.connect(4,0,1.74);
+            g.connect(0,2,0.45);
+            g.connect(2,3,2.73);
+            return g;
+        }
+        if (graph==2){
+            g.addNode(new NodeData(0));
+            g.addNode(new NodeData(1));
+            g.addNode(new NodeData(2));
+            g.addNode(new NodeData(3));
+            g.addNode(new NodeData(4));
+            g.addNode(new NodeData(5));
+            g.addNode(new NodeData(6));
+            g.addNode(new NodeData(7));
+            g.connect(0,1,1.2);
+            g.connect(1,0,3.5);
+            g.connect(2,1,5.6);
+            g.connect(7,1,4.64);
+            g.connect(6,4,2.73);
+            return g;
+        }
+        return g;
+    }
+
+
     private int random(int min, int max){
         return rand.nextInt(max-min)+min;
     }
