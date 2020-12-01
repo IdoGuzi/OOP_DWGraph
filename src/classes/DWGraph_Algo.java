@@ -71,7 +71,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
      */
     @Override
     public boolean isConnected() {
-        if (graph.getV().isEmpty()) { return true;}
+        if (graph.nodeSize()==1 || graph.nodeSize()==0) return true;
         return false;
     }
 

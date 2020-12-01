@@ -7,6 +7,7 @@ import api.node_data;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Set;
 
 public class DWGraph_DS implements directed_weighted_graph {
@@ -37,11 +38,11 @@ public class DWGraph_DS implements directed_weighted_graph {
 
     /**
      * returns the data of the edge (src,dest), null if none.
-     * Note: this method should run in O(1) time.
+     * Note: this method run in O(1) time.
      *
-     * @param src
-     * @param dest
-     * @return suitEdge
+     * @param src - the key of the src of the edge
+     * @param dest - the key of the dest of the edge
+     * @return - edge connecting src and dest.
      */
     @Override
     public edge_data getEdge(int src, int dest) {
@@ -54,9 +55,9 @@ public class DWGraph_DS implements directed_weighted_graph {
 
     /**
      * adds a new node to the graph with the given node_data.
-     * Note: this method should run in O(1) time.
+     * Note: this method run in O(1) time.
      *
-     * @param n
+     * @param n - the node to add to the graph
      */
     @Override
     public void addNode(node_data n) {
@@ -71,7 +72,7 @@ public class DWGraph_DS implements directed_weighted_graph {
 
     /**
      * Connects an edge with weight w between node src to node dest.
-     * * Note: this method should run in O(1) time.
+     * * Note: this method run in O(1) time.
      *
      * @param src  - the source of the edge.
      * @param dest - the destination of the edge.
@@ -108,7 +109,7 @@ public class DWGraph_DS implements directed_weighted_graph {
      * This method returns a pointer (shallow copy) for the
      * collection representing all the edges getting out of
      * the given node (all the edges starting (source) at the given node).
-     * Note: this method should run in O(k) time, k being the collection size.
+     * Note: this method run in O(1) time.
      *
      * @param node_id
      * @return Collection<edge_data>
@@ -193,6 +194,32 @@ public class DWGraph_DS implements directed_weighted_graph {
     public int getMC() {
         return mc;
     }
+
+
+
+    @Override
+    public boolean equals(Object o){
+        if (o==null) return false;
+        if (!(o instanceof directed_weighted_graph)) return false;
+        directed_weighted_graph g = (directed_weighted_graph) o; // check if casting works
+        if (nodeSize()!=g.nodeSize()) return false;
+        if (edgeSize()!=g.edgeSize()) return false;
+        Iterator<node_data> itr = getV().iterator();
+        while (itr.hasNext()){
+            node_data n = itr.next();
+            if (g.getNode(n.getKey())==null) return false;
+            Iterator<edge_data> itr2 = getE(n.getKey()).iterator();
+            while (itr2.hasNext()){
+                edge_data e  = itr2.next();
+                node_data v = getNode(e.getDest());
+                if (g.getNode(v.getKey())==null) return false;
+                if (g.getEdge(n.getKey(),v.getKey())==null) return false;
+                if (getEdge(n.getKey(),v.getKey())!=g.getEdge(n.getKey(),v.getKey())) return false;
+            }
+        }
+        return true;
+    }
+
 
 
     /**
