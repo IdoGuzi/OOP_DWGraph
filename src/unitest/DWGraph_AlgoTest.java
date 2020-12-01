@@ -12,6 +12,7 @@ import api.directed_weighted_graph;
 import api.dw_graph_algorithms;
 import org.junit.jupiter.api.Timeout;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -60,10 +61,31 @@ class DWGraph_AlgoTest {
 
     @Test
     void copy() {
+        dw_graph_algorithms ga = new DWGraph_Algo();
+        for (int i=0;i<35;i++) {
+            int r = random(50,100);
+            ga.init(graph_factory(r, random(r,r*2)));
+            directed_weighted_graph g = ga.copy();
+            assertEquals(ga.getGraph(),g);
+            Iterator<node_data> itr = g.getV().iterator();
+            node_data n = itr.next();
+            node_data v = itr.next();
+            g.removeNode(n.getKey());
+            g.removeNode(v.getKey());
+            assertNotEquals(ga.getGraph(),g);
+        }
+
     }
 
     @Test
     void isConnected() {
+        dw_graph_algorithms ga = new DWGraph_Algo();
+        ga.init(graph_factory(1));
+        assertEquals(false,ga.isConnected());
+        ga.init(graph_factory(2));
+        assertEquals(true,ga.isConnected());
+        ga.init(graph_factory(3));
+        assertEquals(true,ga.isConnected());
     }
 
     @Test

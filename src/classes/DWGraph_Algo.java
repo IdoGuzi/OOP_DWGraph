@@ -19,8 +19,8 @@ public class DWGraph_Algo implements dw_graph_algorithms {
     /**
      * Init the graph on which this set of algorithms operates on.
      *
-     * @param g
-     *////////////////////////////////////////////////////////////////////////
+     * @param g - the new graph assign to this object
+     */
     @Override
     public void init(directed_weighted_graph g) {
         graph=g;
@@ -29,7 +29,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
     /**
      * Return the underlying graph of which this class works.
      *
-     * @return
+     * @return the graph this object holds
      */
     @Override
     public directed_weighted_graph getGraph() {
@@ -65,14 +65,31 @@ public class DWGraph_Algo implements dw_graph_algorithms {
 
     /**
      * Returns true if and only if (iff) there is a valid path from each node to each
-     * other node. NOTE: assume directional graph (all n*(n-1) ordered pairs).
+     * other node.
+     * this method run at 0(|V|+|E|) time (theta).
      *
-     * @return
+     * @return true if the graph is strongly connected, else false.
      */
     @Override
     public boolean isConnected() {
         if (graph.nodeSize()==1 || graph.nodeSize()==0) return true;
-        return false;
+        Iterator<node_data> itr = graph.getV().iterator();
+        node_data n = itr.next();
+        Dijksta(n.getKey());
+        for (node_data v : graph.getV()){
+            if (v.getTag()!=2) return false;
+        }
+        directed_weighted_graph old = graph;
+        init(graph_transpose());
+        Dijksta(n.getKey());
+        for (node_data v : graph.getV()){
+            if (v.getTag()!=2) {
+                init(old);
+                return false;
+            }
+        }
+        init(old);
+        return true;
     }
 
     /**
@@ -81,11 +98,11 @@ public class DWGraph_Algo implements dw_graph_algorithms {
      *
      * @param src  - start node
      * @param dest - end (target) node
-     * @return
+     * @return the distance of the shortest path from src to dest, -1 if none.
      */
     @Override
     public double shortestPathDist(int src, int dest) {
-        Dijksta(src,dest);
+        Dijksta(src);
         double dist = graph.getNode(dest).getWeight();
         if (dist==Double.MAX_VALUE) return -1;
         return dist;
@@ -103,7 +120,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
     @Override
     public List<node_data> shortestPath(int src, int dest) {
         //dijkstaoutput is the parent map of every node detected in the dijksta algo
-        Map<Integer,Integer> dijkstaOutput = Dijksta(src,dest);
+        Map<Integer,Integer> dijkstaOutput = Dijksta(src);
         //will happen if dijksta not found dest (not in the same component as src)
         if (dijkstaOutput.get(dest)==null) return null;
         List<node_data> path = new LinkedList<>();
@@ -240,14 +257,33 @@ public class DWGraph_Algo implements dw_graph_algorithms {
     }
 
     /**
+     * This method takes the graph this object holds and create a new graph
+     * such that if the graph this object holds is G than the return value is G^T (G transpose)
+     * @return - the transpose graph of the graph this object holds.
+     */
+    private directed_weighted_graph graph_transpose(){
+        directed_weighted_graph g = new DWGraph_DS();
+        for (node_data n : graph.getV()){
+            g.addNode(new NodeData(n.getKey()));
+        }
+        for (node_data n : graph.getV()){
+            Iterator<edge_data> itr = graph.getE(n.getKey()).iterator();
+            while (itr.hasNext()){
+                edge_data e = itr.next();
+                g.connect(e.getDest(),e.getSrc(),e.getWeight());
+            }
+        }
+        return g;
+   }
+
+    /**
      * This method perform the Dijksta algorithm to find shortest path between two nodes in a graph.
      * the method runtime is 0(|V|+|E|) (Theta of the size of the vertex + the size of the edges in the graph).
      *
      * @param src the starting vertex of the path.
-     * @param dest - the ending vertex of the path.
      * @return a map representing the vertex who got us to the current vertex (key=current, value=previous)
      */
-    private Map<Integer,Integer> Dijksta(int src, int dest){
+    private Map<Integer,Integer> Dijksta(int src){
         clearTags();
         Map<Integer,Integer> prev = new HashMap<>();
         prev.put(src,src);
