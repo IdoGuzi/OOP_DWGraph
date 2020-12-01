@@ -20,7 +20,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
      * Init the graph on which this set of algorithms operates on.
      *
      * @param g
-     */
+     *////////////////////////////////////////////////////////////////////////
     @Override
     public void init(directed_weighted_graph g) {
         graph=g;
@@ -71,6 +71,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
      */
     @Override
     public boolean isConnected() {
+        if (graph.getV().isEmpty()) { return true;}
         return false;
     }
 

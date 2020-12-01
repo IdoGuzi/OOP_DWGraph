@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class DWGraph_DS implements directed_weighted_graph {
+    //We use HashMaps to store the nodes and the edges
     private HashMap<Integer, node_data> nodes;
     private HashMap<Integer,HashMap<Integer , edge_data>> edges;
     private int edges_size,nodes_size,mc;
@@ -40,7 +41,7 @@ public class DWGraph_DS implements directed_weighted_graph {
      *
      * @param src
      * @param dest
-     * @return
+     * @return suitEdge
      */
     @Override
     public edge_data getEdge(int src, int dest) {
@@ -165,7 +166,7 @@ public class DWGraph_DS implements directed_weighted_graph {
      * Returns the number of vertices (nodes) in the graph.
      * Note: this method should run in O(1) time.
      *
-     * @return
+     * @return The amount of nodes in the graph
      */
     @Override
     public int nodeSize() {
@@ -176,7 +177,7 @@ public class DWGraph_DS implements directed_weighted_graph {
      * Returns the number of edges (assume directional graph).
      * Note: this method should run in O(1) time.
      *
-     * @return
+     * @return The amount of edges in the graph
      */
     @Override
     public int edgeSize() {
@@ -186,7 +187,7 @@ public class DWGraph_DS implements directed_weighted_graph {
     /**
      * Returns the Mode Count - for testing changes in the graph.
      *
-     * @return
+     * @return mode count (mc)
      */
     @Override
     public int getMC() {
@@ -194,8 +195,10 @@ public class DWGraph_DS implements directed_weighted_graph {
     }
 
 
-     private class EdgeDate implements edge_data{
-        //change fron "node_data" types to "int" for space optimiztion
+    /**
+     * This Class represent an Edge (in a graph), basically has 2 ints for source and destination nodes, and a weight.
+     */
+    private class EdgeDate implements edge_data{
         private int src,dest;
         private double weight;
         private String info;
@@ -211,7 +214,7 @@ public class DWGraph_DS implements directed_weighted_graph {
         /**
          * The id of the source node of this edge.
          *
-         * @return
+         * @return source node id
          */
         @Override
         public int getSrc() {
@@ -221,7 +224,7 @@ public class DWGraph_DS implements directed_weighted_graph {
         /**
          * The id of the destination node of this edge
          *
-         * @return
+         * @return destination node id
          */
         @Override
         public int getDest() {
@@ -239,7 +242,7 @@ public class DWGraph_DS implements directed_weighted_graph {
         /**
          * Returns the remark (meta data) associated with this edge.
          *
-         * @return
+         * @return information of the edge
          */
         @Override
         public String getInfo() {

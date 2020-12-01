@@ -8,7 +8,12 @@ public class NodeData implements node_data {
     private double weight;
     private String info;
 
-    public NodeData(int key,double weight){   //default and copy constractors are not exist for now
+    /**
+     * Constractor A
+     * @param key
+     * @param weight
+     */
+    public NodeData(int key,double weight){
         this.key = key;
         this.weight = weight;
         this.info = "";
@@ -17,7 +22,10 @@ public class NodeData implements node_data {
     }
 
 
-
+    /**
+     * Constractor B
+     * @param key
+     */
     public NodeData(int key){
         this.key = key;
         this.weight = 0;
@@ -121,6 +129,10 @@ public class NodeData implements node_data {
         this.tag = t;
     }
 
+    /**
+     * This Class represent a 3D point and its location.
+     * We can calculate Eucalidian Distance from an other point
+     */
     private class GeoLocation implements geo_location{
         public double getX() {
             return x;
@@ -188,7 +200,7 @@ public class NodeData implements node_data {
             return Math.sqrt(   ((x-g.x())*(x-g.x())) + ((y-g.y())*(y-g.y())) + ((z-g.z())*(z-g.z()))   );
         }
 
-        public String toString() { return "( "+x+","+y+","+z+" )"; }
+        public String toString() { return x+","+y+","+z; }
     }
 }
 
