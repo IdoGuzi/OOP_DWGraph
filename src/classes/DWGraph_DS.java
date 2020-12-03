@@ -239,6 +239,7 @@ public class DWGraph_DS implements directed_weighted_graph {
             this.dest = dest;
             this.weight = w;
         }
+        //should tame care the "if has edge" option
 
         /**
          * The id of the source node of this edge.
