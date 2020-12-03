@@ -5,20 +5,19 @@ import api.edge_data;
 import api.geo_location;
 import api.node_data;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class DWGraph_DS implements directed_weighted_graph {
     //We use HashMaps to store the nodes and the edges
     private HashMap<Integer, node_data> nodes;
     private HashMap<Integer,HashMap<Integer , edge_data>> edges;
+    private HashMap<Integer,Set<Integer>> inEdges;
     private int edges_size,nodes_size,mc;
 
     public DWGraph_DS() {
         nodes = new HashMap<>();
         edges = new HashMap<>();
+        inEdges = new HashMap<>();
         edges_size = 0;
         nodes_size = 0;
         mc = 0;
@@ -65,6 +64,7 @@ public class DWGraph_DS implements directed_weighted_graph {
             return;
         }
         edges.put(n.getKey(),new HashMap<>());
+        inEdges.put(n.getKey(),new HashSet<>());
 
         nodes.put(n.getKey() ,n);
         nodes_size++;
@@ -87,9 +87,11 @@ public class DWGraph_DS implements directed_weighted_graph {
         if(!(nodes.containsKey(src) && nodes.containsKey(dest))){
             return;
         }
-
-        edge_data edge = new EdgeDate(src,dest,w);
+        edge_data edge = getEdge(src,dest);
+        if (edge!=null) return;
+        edge = new EdgeDate(src,dest,w);
         edges.get(src).put(dest, edge);
+        inEdges.get(dest).add(src);
         edges_size++;
     }
 
@@ -122,15 +124,18 @@ public class DWGraph_DS implements directed_weighted_graph {
     /**
      * Deletes the node (with the given ID) from the graph -
      * and removes all edges which starts or ends at this node.
-     * This method should run in O(k), V.degree=k, as all the edges should be removed.
+     * This method run in O(k), V.degree=k, as all the edges is being removed (in and out edges).
      *
-     * @param key
+     * @param key - the key of the node to be removed
      * @return the data of the removed node (null if none).
      */
     @Override
     public node_data removeNode(int key) {
         if(!nodes.containsKey(key)){
             return null;
+        }
+        for (int neighbor : inEdges.get(key)){
+            removeEdge(neighbor,key);
         }
         int size = edges.get(key).size();
         edges.remove(key);
@@ -149,19 +154,16 @@ public class DWGraph_DS implements directed_weighted_graph {
      */
     @Override
     public edge_data removeEdge(int src, int dest) {
-        boolean b = false;
-        if(nodes.containsKey(src) && nodes.containsKey(dest)) {
-            b =   edges.get(src).containsKey(dest);
+        if(!(nodes.containsKey(src) && nodes.containsKey(dest))) {
+            return null;
         }
-        if (b == true) {
-
-            edge_data e = edges.get(src).remove(dest); // ???
-            edges.get(src).remove(dest);            //???
-            edges_size--;
-            return e;           //return the data of the removed edge
-        }
-        return null;
-        }
+        edge_data e = edges.get(src).remove(dest);
+        if (e==null) return null;
+        edges.get(src).remove(dest);
+        inEdges.get(dest).remove(src);
+        edges_size--;
+        return e;           //return the data of the removed edge
+    }
 
     /**
      * Returns the number of vertices (nodes) in the graph.
