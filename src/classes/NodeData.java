@@ -133,7 +133,7 @@ public class NodeData implements node_data {
      * This Class represent a 3D point and its location.
      * We can calculate Eucalidian Distance from an other point
      */
-    private class GeoLocation implements geo_location{
+    public class GeoLocation implements geo_location{
         public double getX() {
             return x;
         }
