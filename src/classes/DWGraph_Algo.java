@@ -180,6 +180,22 @@ public class DWGraph_Algo implements dw_graph_algorithms {
         return true;
     }
 
+    /**
+     * constact a graph from string json format
+     * @param graph
+     * @return
+     */
+    public boolean loadFromString(String graph){
+        try {
+            JSONObject jp = new JSONObject(graph);
+            fromJsonGraph(jp);
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
     private String toJsonGraph() throws JSONException {
         JSONObject jo = new JSONObject();
         JSONArray no = new JSONArray();
