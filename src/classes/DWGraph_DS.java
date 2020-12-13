@@ -227,7 +227,7 @@ public class DWGraph_DS implements directed_weighted_graph {
     /**
      * This Class represent an Edge (in a graph), basically has 2 ints for source and destination nodes, and a weight.
      */
-    private class EdgeDate implements edge_data{
+    public class EdgeDate implements edge_data{
         private int src,dest;
         private double weight;
         private String info;
