@@ -66,6 +66,7 @@ public class Game {
             }
             GeneralPlanningMove();
             for (CL_Agent agent : ar.getAgents()){
+                if (agent.getNextNode()!=-1) continue;
                 int id = agent.getID();
                 System.out.println("path of agent:"+id+ " that is on "+ agent.getSrcNode() +" is:"+agent_path.get(id).toString());
                 boolean flag = false;
@@ -87,7 +88,7 @@ public class Game {
             for (CL_Agent agent :ar.getAgents()){
                 System.out.println("agent: "+agent.getID()+" is going from "+agent.getSrcNode() + " to  --> " +agent.getNextNode());
             }
-            game.move();
+            System.out.println(game.move());
         }
         System.out.println(game.toString());
     }
@@ -167,7 +168,6 @@ public class Game {
 
     public void setUpdatedAgents(){
         ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
-        System.out.println(game.getAgents());
     }
     public void setUpdatedPokemons(){
         List<CL_Pokemon> pokemons = Agent_Graph_Algo.json2Pokemons(game.getPokemons());
