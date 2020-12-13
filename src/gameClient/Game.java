@@ -67,24 +67,18 @@ public class Game {
             GeneralPlanningMove();
             for (CL_Agent agent : ar.getAgents()){
                 int id = agent.getID();
-                System.out.println("path of agent:"+id+" is:"+agent_path.get(id).toString());
+                System.out.println("path of agent:"+id+ " that is on "+ agent.getSrcNode() +" is:"+agent_path.get(id).toString());
                 boolean flag = false;
                 if (agent_path.get(id).isEmpty()) {
                     flag=agentPlan(id);
                 }else flag=true;
                 if (flag) {
-                    System.out.println("old path of agent:"+id+" is:"+agent_path.get(id).toString());
-                    int node = agent_path.get(id).remove();
-                    System.out.println("checking node="+node + "   src node of agent is = "+agent.getSrcNode());
-                    while (agent.getSrcNode() ==  node){
-                        System.out.println("old path of agent:"+id+" is:"+agent_path.get(id).toString());
-                        node = agent_path.get(id).remove();
-                        System.out.println("checking node="+node + "   src node of agent is = "+agent.getSrcNode());
+                    while (agent.getSrcNode()==agent_path.get(id).getFirst()){
+                        agent_path.get(id).remove();
                     }
-                    System.out.println("new path of agent:"+id+" is:"+agent_path.get(id).toString());
+                    int node = agent_path.get(id).remove();
                     game.chooseNextEdge(id,node);
                     agent.setNextNode(node);
-                    System.out.println("inside flag "+"agent: "+agent.getID()+" is going from "+agent.getSrcNode() + " to  --> " +agent.getNextNode());
                 }
             }
             pokemonEating();
@@ -94,7 +88,6 @@ public class Game {
                 System.out.println("agent: "+agent.getID()+" is going from "+agent.getSrcNode() + " to  --> " +agent.getNextNode());
             }
             game.move();
-
         }
         System.out.println(game.toString());
     }
@@ -174,6 +167,7 @@ public class Game {
 
     public void setUpdatedAgents(){
         ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
+        System.out.println(game.getAgents());
     }
     public void setUpdatedPokemons(){
         List<CL_Pokemon> pokemons = Agent_Graph_Algo.json2Pokemons(game.getPokemons());
