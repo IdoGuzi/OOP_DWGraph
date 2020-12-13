@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 public class CL_Pokemon {
 	private edge_data _edge;
+	private int assignedAgent;
 	private double _value;
 	private int _type;
 	private Point3D _pos;
@@ -67,6 +68,14 @@ public class CL_Pokemon {
 
 	public void setMin_ro(int min_ro) {
 		this.min_ro = min_ro;
+	}
+
+	public int getAssignedAgent(){
+		return assignedAgent;
+	}
+
+	public void setAssignedAgent(int assignedAgent) {
+		this.assignedAgent = assignedAgent;
 	}
 
 	@Override

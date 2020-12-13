@@ -30,18 +30,20 @@ public class Game {
         this.ar.setPokemons(Agent_Graph_Algo.json2Pokemons(game.getPokemons()));
         for (int i=0;i<ar.getPokemons().size();i++){
             Agent_Graph_Algo.updateEdge(ar.getPokemons().get(i),ar.getGraph());
+            System.out.println(ar.getPokemons().get(i).get_edge().getSrc()+ "," +ar.getPokemons().get(i).get_edge().getDest());
         }
         try {
             int agent_num = new JSONObject(game.toString()).getJSONObject("GameServer").getInt("agents");
             for (int i=0;i<agent_num;i++){
-                for (int j=0;j<ar.getPokemons().size();j++){
-                    game.addAgent(ar.getPokemons().get(j).get_edge().getSrc());
-                }
+                game.addAgent(ar.getPokemons().get(i).get_edge().getSrc());
             }
         }catch (Exception e){
             e.printStackTrace();
         }
         this.ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
+        for (int i=0;i<ar.getAgents().size();i++){
+            System.out.println(game.getAgents());
+        }
         this.win=new MyFrame("my game");
         this.win.update(ar);
         this.agent_path = new HashMap<>();
@@ -55,13 +57,13 @@ public class Game {
         game.startGame();
         //win.setVisible(true);
         while (game.isRunning()){
-            System.out.println("running");
             planMove();
             for (int id : agent_path.keySet()){
                 int node = agent_path.get(id).remove();
                 game.chooseNextEdge(id,node);
                 System.out.println(id+"  --> "+node);
             }
+
             win.repaint();
             game.move();
 
@@ -99,6 +101,7 @@ public class Game {
             }
             for (node_data n : path) {
                 agent_path.get(closest_agent_id).add(n.getKey());
+                agent_path.get(closest_agent_id).add(p.get_edge().getDest());
             }
         }
     }
