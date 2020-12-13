@@ -18,6 +18,7 @@ public class CL_Pokemon {
 	public CL_Pokemon(Point3D p, int t, double v, double s, edge_data e) {
 		_type = t;
 	//	_speed = s;
+		assignedAgent=-1;
 		_value = v;
 		set_edge(e);
 		_pos = p;

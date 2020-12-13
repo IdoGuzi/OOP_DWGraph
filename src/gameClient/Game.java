@@ -30,7 +30,6 @@ public class Game {
         this.ar.setPokemons(Agent_Graph_Algo.json2Pokemons(game.getPokemons()));
         for (int i=0;i<ar.getPokemons().size();i++){
             Agent_Graph_Algo.updateEdge(ar.getPokemons().get(i),ar.getGraph());
-            System.out.println(ar.getPokemons().get(i).get_edge().getSrc()+ "," +ar.getPokemons().get(i).get_edge().getDest());
         }
         try {
             int agent_num = new JSONObject(game.toString()).getJSONObject("GameServer").getInt("agents");
@@ -46,6 +45,7 @@ public class Game {
         }
         this.win=new MyFrame("my game");
         this.win.update(ar);
+        this.win.setSize(1000,700);
         this.agent_path = new HashMap<>();
         for (CL_Agent a : ar.getAgents()){
             agent_path.put(a.getID(),new LinkedList<>());
@@ -56,36 +56,100 @@ public class Game {
     public void play(){
         game.startGame();
         //win.setVisible(true);
+        win.show();
+        sleep(1000);
         while (game.isRunning()){
-            planMove();
-            for (int id : agent_path.keySet()){
-                int node = agent_path.get(id).remove();
-                game.chooseNextEdge(id,node);
-                System.out.println(id+"  --> "+node);
+            setUpdatedAgents();
+            setUpdatedPokemons();
+            for (CL_Pokemon p : ar.getPokemons()) {
+                System.out.println("pokemon on edge: ["+ p.get_edge().getSrc()+","+p.get_edge().getDest()+"]");
             }
-
+            GeneralPlanningMove();
+            for (CL_Agent agent : ar.getAgents()){
+                int id = agent.getID();
+                System.out.println("path of agent:"+id+" is:"+agent_path.get(id).toString());
+                boolean flag = false;
+                if (agent_path.get(id).isEmpty()) {
+                    flag=agentPlan(id);
+                }else flag=true;
+                if (flag) {
+                    System.out.println("old path of agent:"+id+" is:"+agent_path.get(id).toString());
+                    int node = agent_path.get(id).remove();
+                    System.out.println("checking node="+node + "   src node of agent is = "+agent.getSrcNode());
+                    while (agent.getSrcNode() ==  node){
+                        System.out.println("old path of agent:"+id+" is:"+agent_path.get(id).toString());
+                        node = agent_path.get(id).remove();
+                        System.out.println("checking node="+node + "   src node of agent is = "+agent.getSrcNode());
+                    }
+                    System.out.println("new path of agent:"+id+" is:"+agent_path.get(id).toString());
+                    game.chooseNextEdge(id,node);
+                    agent.setNextNode(node);
+                    System.out.println("inside flag "+"agent: "+agent.getID()+" is going from "+agent.getSrcNode() + " to  --> " +agent.getNextNode());
+                }
+            }
+            pokemonEating();
             win.repaint();
+            sleep(500);
+            for (CL_Agent agent :ar.getAgents()){
+                System.out.println("agent: "+agent.getID()+" is going from "+agent.getSrcNode() + " to  --> " +agent.getNextNode());
+            }
             game.move();
 
         }
         System.out.println(game.toString());
     }
 
-    public void planMove(){
-        setUpdatedAgents();
-        setUpdatedPokemons();
+    public boolean agentPlan(int agent_id){
+        CL_Agent a=null;
+        for (CL_Agent b : ar.getAgents()){
+            if (b.getID()==agent_id) {
+                a = b;
+            }
+        }
+        dw_graph_algorithms ga = new DWGraph_Algo();
+        ga.init(ar.getGraph());
+        CL_Pokemon closest=null;
+        double min_dist=Double.MAX_VALUE;
+        for (CL_Pokemon p : ar.getPokemons()){
+            if (p.getAssignedAgent()!=-1) continue;
+            double temp_dist = ga.shortestPathDist(a.getSrcNode(),p.get_edge().getSrc());
+            if (temp_dist<min_dist){
+                closest=p;
+                min_dist=temp_dist;
+            }
+        }
+        if (closest==null) return false;
+        List<node_data> path = ga.shortestPath(a.getSrcNode(),closest.get_edge().getSrc());
+        for (node_data n:path){
+            agent_path.get(a.getID()).add(n.getKey());
+        }
+        agent_path.get(a.getID()).add(closest.get_edge().getDest());
+        closest.setAssignedAgent(a.getID());
+        return true;
+    }
+
+    public void GeneralPlanningMove(){
         dw_graph_algorithms ga = new DWGraph_Algo();
         ga.init(ar.getGraph());
         for (CL_Pokemon p : ar.getPokemons()){
+            if (p.getAssignedAgent()!=-1) continue;
             int closest_agent_id=-1;
             CL_Agent ag = null;
             double min_dist=Double.MAX_VALUE;
             for (CL_Agent a : ar.getAgents()){
                 double temp_dist;
                 if (agent_path.get(a.getID()).isEmpty()){
-                    temp_dist = ga.shortestPathDist(a.getSrcNode(), p.get_edge().getSrc());
+                    if (a.getSrcNode()==p.get_edge().getSrc()) {
+                        temp_dist = 0;
+                    }else {
+                        temp_dist = ga.shortestPathDist(a.getSrcNode(), p.get_edge().getSrc());
+                    }
                 }else {
-                    temp_dist = ga.shortestPathDist(agent_path.get(a.getID()).getLast(), p.get_edge().getSrc());
+                    if (agent_path.get(a.getID()).getLast()==p.get_edge().getSrc()){
+                        temp_dist=0;
+                    }else {
+                        temp_dist = ga.shortestPathDist(agent_path.get(a.getID()).getLast(), p.get_edge().getSrc());
+                    }
                 }
                 if (temp_dist<min_dist){
                     closest_agent_id=a.getID();
@@ -101,14 +165,12 @@ public class Game {
             }
             for (node_data n : path) {
                 agent_path.get(closest_agent_id).add(n.getKey());
-                agent_path.get(closest_agent_id).add(p.get_edge().getDest());
             }
+            agent_path.get(closest_agent_id).add(p.get_edge().getDest());
+            p.setAssignedAgent(closest_agent_id);
         }
     }
 
-    public void placeAgents(){
-
-    }
 
     public void setUpdatedAgents(){
         ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
@@ -127,5 +189,30 @@ public class Game {
             if (!found) update.add(p);
         }
         ar.setPokemons(update);
+    }
+
+    private void pokemonEating(){
+        List<CL_Pokemon> toDelete = new ArrayList<>();
+        for (CL_Agent agent:ar.getAgents()){
+            for (CL_Pokemon poke:ar.getPokemons()){
+                if (agent.getSrcNode()==poke.get_edge().getSrc() &&
+                        agent.getNextNode()==poke.get_edge().getDest()){
+                    toDelete.add(poke);
+                }
+            }
+        }
+        List<CL_Pokemon> update = ar.getPokemons();
+        for (CL_Pokemon p : toDelete){
+            update.remove(p);
+        }
+        ar.setPokemons(update);
+    }
+
+    private void sleep(int time){
+        try {
+            Thread.sleep(time);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
