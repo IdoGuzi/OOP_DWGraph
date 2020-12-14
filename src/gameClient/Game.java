@@ -54,15 +54,15 @@ public class Game {
 
 
     public void play(){
-        game.startGame();
-        //win.setVisible(true);
         win.show();
         sleep(1000);
+        game.startGame();
+        //win.setVisible(true);
         while (game.isRunning()){
             setUpdatedAgents();
             setUpdatedPokemons();
             for (CL_Pokemon p : ar.getPokemons()) {
-                System.out.println("pokemon on edge: ["+ p.get_edge().getSrc()+","+p.get_edge().getDest()+"]");
+                System.out.println("pokemon on edge: ["+ p.get_edge().getSrc()+","+p.get_edge().getDest()+"]" + " assigned to agent:"+p.getAssignedAgent());
             }
             GeneralPlanningMove();
             for (CL_Agent agent : ar.getAgents()){
@@ -75,6 +75,7 @@ public class Game {
                 }else flag=true;
                 if (flag) {
                     while (agent.getSrcNode()==agent_path.get(id).getFirst()){
+                        if (agent.getNextNode()!=-1) break;
                         agent_path.get(id).remove();
                     }
                     int node = agent_path.get(id).remove();
@@ -82,15 +83,26 @@ public class Game {
                     agent.setNextNode(node);
                 }
             }
-            pokemonEating();
+            //pokemonEating();
             win.repaint();
-            sleep(500);
+            sleep(100);
             for (CL_Agent agent :ar.getAgents()){
                 System.out.println("agent: "+agent.getID()+" is going from "+agent.getSrcNode() + " to  --> " +agent.getNextNode());
             }
             System.out.println(game.move());
         }
+        win=null;
         System.out.println(game.toString());
+    }
+
+    public void play2() {
+        win.show();
+        sleep(1000);
+        game.startGame();
+        //win.setVisible(true);
+        while (game.isRunning()) {
+
+        }
     }
 
     public boolean agentPlan(int agent_id){
@@ -114,7 +126,11 @@ public class Game {
         }
         if (closest==null) return false;
         List<node_data> path = ga.shortestPath(a.getSrcNode(),closest.get_edge().getSrc());
-        for (node_data n:path){
+        System.out.println("adding path: " + path.toString());
+        Iterator<node_data> itr = path.iterator();
+        itr.next();
+        while (itr.hasNext()){
+            node_data n = itr.next();
             agent_path.get(a.getID()).add(n.getKey());
         }
         agent_path.get(a.getID()).add(closest.get_edge().getDest());
@@ -125,13 +141,33 @@ public class Game {
     public void GeneralPlanningMove(){
         dw_graph_algorithms ga = new DWGraph_Algo();
         ga.init(ar.getGraph());
-        for (CL_Pokemon p : ar.getPokemons()){
+        PriorityQueue<CL_Pokemon> queue= new PriorityQueue<>(1,new PokemonComperator());
+        queue.addAll(ar.getPokemons());
+        whileloop:
+        while (!queue.isEmpty()){
+            CL_Pokemon p = queue.poll();
             if (p.getAssignedAgent()!=-1) continue;
             int closest_agent_id=-1;
             CL_Agent ag = null;
             double min_dist=Double.MAX_VALUE;
             for (CL_Agent a : ar.getAgents()){
                 double temp_dist;
+                if (agent_path.get(a.getID()).isEmpty()){
+                    if (a.getNextNode()==-1){
+                        agent_path.get(a.getID()).add(a.getSrcNode());
+                    }else {
+                        agent_path.get(a.getID()).add(a.getNextNode());
+                        if (p.get_edge().getSrc()==a.getSrcNode() && p.get_edge().getDest()==a.getNextNode()) {
+                            p.setAssignedAgent(a.getID());
+                            continue whileloop;
+                        }
+                    }
+                }
+
+                temp_dist = ga.shortestPathDist(agent_path.get(a.getID()).getLast(), p.get_edge().getSrc());
+
+
+                /*
                 if (agent_path.get(a.getID()).isEmpty()){
                     if (a.getSrcNode()==p.get_edge().getSrc()) {
                         temp_dist = 0;
@@ -145,19 +181,21 @@ public class Game {
                         temp_dist = ga.shortestPathDist(agent_path.get(a.getID()).getLast(), p.get_edge().getSrc());
                     }
                 }
+
+                 */
                 if (temp_dist<min_dist){
                     closest_agent_id=a.getID();
                     min_dist=temp_dist;
                     ag=a;
                 }
             }
-            List<node_data> path;
-            if (agent_path.get(closest_agent_id).isEmpty()){
-                path = ga.shortestPath(ag.getSrcNode(), p.get_edge().getSrc());
-            }else {
-                path = ga.shortestPath(agent_path.get(closest_agent_id).getLast(), p.get_edge().getSrc());
-            }
-            for (node_data n : path) {
+            List<node_data> path = ga.shortestPath(agent_path.get(closest_agent_id).getLast(), p.get_edge().getSrc());;
+
+            System.out.println("adding paths: " + path.toString() + "   to agent path: " + agent_path.get(closest_agent_id).toString());
+            Iterator<node_data> itr = path.iterator();
+            itr.next();
+            while (itr.hasNext()){
+                node_data n = itr.next();
                 agent_path.get(closest_agent_id).add(n.getKey());
             }
             agent_path.get(closest_agent_id).add(p.get_edge().getDest());
@@ -170,15 +208,20 @@ public class Game {
         ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
     }
     public void setUpdatedPokemons(){
+        //System.out.println(game.getPokemons());
         List<CL_Pokemon> pokemons = Agent_Graph_Algo.json2Pokemons(game.getPokemons());
         for (int i=0;i<pokemons.size();i++){
             Agent_Graph_Algo.updateEdge(pokemons.get(i),ar.getGraph());
         }
-        List<CL_Pokemon> update = ar.getPokemons();
+        List<CL_Pokemon> update = new ArrayList<>();
         for (CL_Pokemon p : pokemons){
             boolean found=false;
             for (CL_Pokemon c : ar.getPokemons()){
-                if (p.equals(c)) found=true;
+                if (p.equals(c)) {
+                    System.out.println("equals pokemons found: [" + c.get_edge().getSrc()+","+c.get_edge().getDest()+"]");
+                    found=true;
+                    update.add(c);
+                }
             }
             if (!found) update.add(p);
         }
@@ -207,6 +250,19 @@ public class Game {
             Thread.sleep(time);
         }catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+
+    private class PokemonComperator implements Comparator<CL_Pokemon>{
+        private static final double EPS=0.0001;
+        public PokemonComperator(){}
+        @Override
+        public int compare(CL_Pokemon o1, CL_Pokemon o2) {
+            if (o1.getValue()-o2.getValue()>EPS) return 1;
+            if (o1.getValue()-o2.getValue()<EPS) return 0;
+            if (o1.getValue()-o2.getValue()<-EPS) return -1;
+            return 0;
         }
     }
 }

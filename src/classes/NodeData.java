@@ -129,6 +129,11 @@ public class NodeData implements node_data {
         this.tag = t;
     }
 
+    @Override
+    public String toString(){
+        return "key="+key;//+", location="+location.toString();
+    }
+
     /**
      * This Class represent a 3D point and its location.
      * We can calculate Eucalidian Distance from an other point
@@ -200,6 +205,7 @@ public class NodeData implements node_data {
             return Math.sqrt(   ((x-g.x())*(x-g.x())) + ((y-g.y())*(y-g.y())) + ((z-g.z())*(z-g.z()))   );
         }
 
+        @Override
         public String toString() { return x+","+y+","+z; }
     }
 }

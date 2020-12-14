@@ -79,17 +79,51 @@ public class CL_Pokemon {
 		this.assignedAgent = assignedAgent;
 	}
 
+	private String toPString(){
+		return "edge=["+this.get_edge().getSrc()+","+this.get_edge().getDest()+"], location="+getLocation().toString();
+	}
+
 	@Override
 	public boolean equals(Object o){
-		if (o==null) return false;
-		if (!(o instanceof CL_Pokemon)) return false;
+		if (o==null) {
+			System.out.println("false cause null");
+			return false;
+		}
+		if (!(o instanceof CL_Pokemon)) {
+			System.out.println("false cause not pokemon");
+			return false;
+		}
 		CL_Pokemon p = (CL_Pokemon) o;
-		if (this.get_edge().getSrc()!=p.get_edge().getSrc()) return false;
-		if (this.get_edge().getDest()!=p.get_edge().getDest()) return false;
-		if (this.get_edge().getWeight()-p.get_edge().getWeight()>0.0001) return false;
-		if (!this.getLocation().equals(p.getLocation())) return false;
-		if (this.getValue()-p.getValue()>0.0001) return false;
-		if (this.getType()!=p.getType()) return false;
+		if (this.get_edge().getSrc()!=p.get_edge().getSrc()) {
+			System.out.println("edges source are different: this src=" + this.get_edge().getSrc() + ", p src="+ p.get_edge().getSrc());
+			System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
+			return false;
+		}
+		if (this.get_edge().getDest()!=p.get_edge().getDest()) {
+			System.out.println("edges destinations are different: this dest=" + this.get_edge().getDest() + ", p dest="+ p.get_edge().getDest());
+			System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
+			return false;
+		}
+		if (Math.abs(this.get_edge().getWeight()-p.get_edge().getWeight())>0.0001) {
+			System.out.println("edge weights are different: this weight="+this.get_edge().getWeight() + ", p weight" +p.get_edge().getWeight());
+			System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
+			return false;
+		}
+		if (!this.getLocation().equals(p.getLocation())) {
+			System.out.println("location are differents");
+			System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
+			return false;
+		}
+		if (Math.abs(this.getValue()-p.getValue())>0.0001) {
+			System.out.println("value are differents");
+			System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
+			return false;
+		}
+		if (this.getType()!=p.getType()) {
+			System.out.println("type are differents");
+			System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
+			return false;
+		}
 		return true;
 	}
 
