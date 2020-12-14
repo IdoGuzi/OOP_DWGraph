@@ -28,21 +28,15 @@ public class Game {
         this.ar.setGraph(ga.getGraph());
         System.out.println(game.getPokemons());
         this.ar.setPokemons(Agent_Graph_Algo.json2Pokemons(game.getPokemons()));
-        for (int i=0;i<ar.getPokemons().size();i++){
-            Agent_Graph_Algo.updateEdge(ar.getPokemons().get(i),ar.getGraph());
-        }
+        for (int i=0;i<ar.getPokemons().size();i++) Agent_Graph_Algo.updateEdge(ar.getPokemons().get(i),ar.getGraph());
         try {
             int agent_num = new JSONObject(game.toString()).getJSONObject("GameServer").getInt("agents");
-            for (int i=0;i<agent_num;i++){
-                game.addAgent(ar.getPokemons().get(i).get_edge().getSrc());
-            }
+            addAgents(agent_num);
         }catch (Exception e){
             e.printStackTrace();
         }
         this.ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
-        for (int i=0;i<ar.getAgents().size();i++){
-            System.out.println(game.getAgents());
-        }
+        System.out.println(game.getAgents());
         this.win=new MyFrame("my game");
         this.win.update(ar);
         this.win.setSize(1000,700);
@@ -50,8 +44,35 @@ public class Game {
         for (CL_Agent a : ar.getAgents()){
             agent_path.put(a.getID(),new LinkedList<>());
         }
+        for (CL_Pokemon p : ar.getPokemons()){
+            for (CL_Agent a : ar.getAgents())
+            if (p.get_edge().getSrc()==a.getSrcNode()){
+                p.setAssignedAgent(a.getID());
+                a.set_curr_fruit(p);
+                agent_path.get(a.getID()).add(p.get_edge().getDest());
+            }
+        }
     }
 
+
+
+    public void play2(){
+        win.show();
+        sleep(1000);
+        game.startGame();
+        while (game.isRunning()){
+            setUpdatedAgents();
+            setUpdatedPokemons();
+            for (CL_Agent a : ar.getAgents()){
+                if (a.getNextNode()!=-1) continue;
+                if (a.get_curr_fruit()!=null) continue;
+                for (CL_Pokemon p : ar.getPokemons()){
+                    if (p.getAssignedAgent()!=-1) continue;
+                        
+                }
+            }
+        }
+    }
 
     public void play(){
         win.show();
@@ -74,13 +95,15 @@ public class Game {
                     flag=agentPlan(id);
                 }else flag=true;
                 if (flag) {
-                    while (agent.getSrcNode()==agent_path.get(id).getFirst()){
+                    while (!agent_path.get(id).isEmpty() && agent.getSrcNode()==agent_path.get(id).getFirst()){
                         if (agent.getNextNode()!=-1) break;
                         agent_path.get(id).remove();
                     }
-                    int node = agent_path.get(id).remove();
-                    game.chooseNextEdge(id,node);
-                    agent.setNextNode(node);
+                    if (!agent_path.get(id).isEmpty()) {
+                        int node = agent_path.get(id).remove();
+                        game.chooseNextEdge(id, node);
+                        agent.setNextNode(node);
+                    }
                 }
             }
             //pokemonEating();
@@ -95,15 +118,7 @@ public class Game {
         System.out.println(game.toString());
     }
 
-    public void play2() {
-        win.show();
-        sleep(1000);
-        game.startGame();
-        //win.setVisible(true);
-        while (game.isRunning()) {
 
-        }
-    }
 
     public boolean agentPlan(int agent_id){
         CL_Agent a=null;
@@ -250,6 +265,30 @@ public class Game {
             Thread.sleep(time);
         }catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+
+    private void addAgents(int agent_num){
+        PriorityQueue<CL_Pokemon> queue = new PriorityQueue<>(1,new PokemonComperator());
+        queue.addAll(ar.getPokemons());
+        if (ar.getPokemons().size()>=agent_num){
+            for (int i=0;i<agent_num;i++){
+                CL_Pokemon p = queue.poll();
+                game.addAgent(p.get_edge().getSrc());
+            }
+        }else{
+            int count =0;
+            while (!queue.isEmpty()){
+                CL_Pokemon p = queue.poll();
+                game.addAgent(p.get_edge().getSrc());
+                count++;
+            }
+            Iterator<node_data> itr  = ar.getGraph().getV().iterator();
+            while (count<agent_num){
+                if (!itr.hasNext()) itr = ar.getGraph().getV().iterator();
+                game.addAgent(itr.next().getKey());
+            }
         }
     }
 

@@ -27,6 +27,7 @@ public class CL_Agent {
 			_pos = _curr_node.getLocation();
 			_id = -1;
 			setSpeed(0);
+			_curr_fruit=null;
 		}
 		public void update(String json) {
 			JSONObject line;

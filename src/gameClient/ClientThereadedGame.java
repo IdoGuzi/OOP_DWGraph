@@ -23,7 +23,7 @@ public class ClientThereadedGame implements Runnable{
 	
 	@Override
 	public void run() {
-		int scenario_num = 0;
+		int scenario_num = 23;
 		int id = 12345678;
 	//	Game_Server.login(id);
 		game_service game = Game_Server_Ex2.getServer(scenario_num); // you have [0,23] games
