@@ -16,6 +16,7 @@ public class Game {
     private Arena ar;
     private MyFrame win;
     private HashMap<Integer, LinkedList<Integer>> agent_path;
+    private dw_graph_algorithms ga;
 
     public Game(int lvl){
         this.level=lvl;
@@ -26,6 +27,7 @@ public class Game {
         System.out.println(game.getGraph());
         ga.loadFromString(game.getGraph());
         this.ar.setGraph(ga.getGraph());
+        this.ga = ga;
         System.out.println(game.getPokemons());
         this.ar.setPokemons(Agent_Graph_Algo.json2Pokemons(game.getPokemons()));
         for (int i=0;i<ar.getPokemons().size();i++) Agent_Graph_Algo.updateEdge(ar.getPokemons().get(i),ar.getGraph());
@@ -55,173 +57,189 @@ public class Game {
     }
 
 
-
-    public void play2(){
-        win.show();
-        sleep(1000);
-        game.startGame();
-        while (game.isRunning()){
-            setUpdatedAgents();
-            setUpdatedPokemons();
-            for (CL_Agent a : ar.getAgents()){
-                if (a.getNextNode()!=-1) continue;
-                if (a.get_curr_fruit()!=null) continue;
-                for (CL_Pokemon p : ar.getPokemons()){
-                    if (p.getAssignedAgent()!=-1) continue;
-                        
-                }
-            }
-        }
-    }
-
     public void play(){
+        Thread server = new Thread(new ServerTalker());
+        //Thread cutter = new Thread(new Cutter());
         win.show();
         sleep(1000);
         game.startGame();
-        //win.setVisible(true);
+        server.start();
+        //cutter.start();
         while (game.isRunning()){
-            setUpdatedAgents();
-            setUpdatedPokemons();
-            for (CL_Pokemon p : ar.getPokemons()) {
-                System.out.println("pokemon on edge: ["+ p.get_edge().getSrc()+","+p.get_edge().getDest()+"]" + " assigned to agent:"+p.getAssignedAgent());
-            }
-            GeneralPlanningMove();
-            for (CL_Agent agent : ar.getAgents()){
-                if (agent.getNextNode()!=-1) continue;
-                int id = agent.getID();
-                System.out.println("path of agent:"+id+ " that is on "+ agent.getSrcNode() +" is:"+agent_path.get(id).toString());
-                boolean flag = false;
-                if (agent_path.get(id).isEmpty()) {
-                    flag=agentPlan(id);
-                }else flag=true;
-                if (flag) {
-                    while (!agent_path.get(id).isEmpty() && agent.getSrcNode()==agent_path.get(id).getFirst()){
-                        if (agent.getNextNode()!=-1) break;
-                        agent_path.get(id).remove();
-                    }
-                    if (!agent_path.get(id).isEmpty()) {
-                        int node = agent_path.get(id).remove();
-                        game.chooseNextEdge(id, node);
-                        agent.setNextNode(node);
-                    }
-                }
-            }
-            //pokemonEating();
-            win.repaint();
-            sleep(100);
-            for (CL_Agent agent :ar.getAgents()){
-                System.out.println("agent: "+agent.getID()+" is going from "+agent.getSrcNode() + " to  --> " +agent.getNextNode());
-            }
-            System.out.println(game.move());
+            //System.out.println("before pathFinder");
+            pathFinder();
+            sleep(50);
         }
-        win=null;
+        try {server.join();}catch (Exception e) {e.printStackTrace();}
         System.out.println(game.toString());
     }
 
-
-
-    public boolean agentPlan(int agent_id){
-        CL_Agent a=null;
-        for (CL_Agent b : ar.getAgents()){
-            if (b.getID()==agent_id) {
-                a = b;
-            }
-        }
-        dw_graph_algorithms ga = new DWGraph_Algo();
-        ga.init(ar.getGraph());
-        CL_Pokemon closest=null;
-        double min_dist=Double.MAX_VALUE;
-        for (CL_Pokemon p : ar.getPokemons()){
-            if (p.getAssignedAgent()!=-1) continue;
-            double temp_dist = ga.shortestPathDist(a.getSrcNode(),p.get_edge().getSrc());
-            if (temp_dist<min_dist){
-                closest=p;
-                min_dist=temp_dist;
-            }
-        }
-        if (closest==null) return false;
-        List<node_data> path = ga.shortestPath(a.getSrcNode(),closest.get_edge().getSrc());
-        System.out.println("adding path: " + path.toString());
-        Iterator<node_data> itr = path.iterator();
-        itr.next();
-        while (itr.hasNext()){
-            node_data n = itr.next();
-            agent_path.get(a.getID()).add(n.getKey());
-        }
-        agent_path.get(a.getID()).add(closest.get_edge().getDest());
-        closest.setAssignedAgent(a.getID());
-        return true;
-    }
-
-    public void GeneralPlanningMove(){
-        dw_graph_algorithms ga = new DWGraph_Algo();
-        ga.init(ar.getGraph());
+    public void pathFinder(){
         PriorityQueue<CL_Pokemon> queue= new PriorityQueue<>(1,new PokemonComperator());
         queue.addAll(ar.getPokemons());
         whileloop:
         while (!queue.isEmpty()){
             CL_Pokemon p = queue.poll();
             if (p.getAssignedAgent()!=-1) continue;
-            int closest_agent_id=-1;
-            CL_Agent ag = null;
+            try {
+                System.out.println("pokemon on edge: [" + p.get_edge().getSrc() + "," + p.get_edge().getDest() + "] is assigned to agent: " + p.getAssignedAgent());
+            }catch (NullPointerException e) {
+                System.out.println("pokemon on edge: [" + p.get_edge().getSrc() + "," + p.get_edge().getDest() + "] is assigned to agent: null");
+            }
+            CL_Agent closest=null;
             double min_dist=Double.MAX_VALUE;
             for (CL_Agent a : ar.getAgents()){
-                double temp_dist;
-                if (agent_path.get(a.getID()).isEmpty()){
-                    if (a.getNextNode()==-1){
-                        agent_path.get(a.getID()).add(a.getSrcNode());
-                    }else {
-                        agent_path.get(a.getID()).add(a.getNextNode());
-                        if (p.get_edge().getSrc()==a.getSrcNode() && p.get_edge().getDest()==a.getNextNode()) {
-                            p.setAssignedAgent(a.getID());
-                            continue whileloop;
-                        }
-                    }
+                //System.out.println("agent pokemon=["+a.get_curr_fruit().get_edge().getSrc()+","+a.get_curr_fruit().get_edge().getDest()+"]");
+                //if (a.get_curr_fruit()!=null) continue;
+                //if (a.getNextNode()!=-1) continue;
+                if (a.getSrcNode()==p.get_edge().getSrc()){
+                    agent_path.get(a.getID()).add(p.get_edge().getDest());
+                    p.setAssignedAgent(a.getID());
+                    a.set_curr_fruit(p);
+                    continue whileloop;
                 }
-
-                temp_dist = ga.shortestPathDist(agent_path.get(a.getID()).getLast(), p.get_edge().getSrc());
-
-
-                /*
-                if (agent_path.get(a.getID()).isEmpty()){
-                    if (a.getSrcNode()==p.get_edge().getSrc()) {
-                        temp_dist = 0;
-                    }else {
-                        temp_dist = ga.shortestPathDist(a.getSrcNode(), p.get_edge().getSrc());
-                    }
-                }else {
-                    if (agent_path.get(a.getID()).getLast()==p.get_edge().getSrc()){
-                        temp_dist=0;
-                    }else {
-                        temp_dist = ga.shortestPathDist(agent_path.get(a.getID()).getLast(), p.get_edge().getSrc());
-                    }
+                if (agent_path.get(a.getID()).isEmpty()) {
+                    emptyPathFiller(a);
                 }
-
-                 */
-                if (temp_dist<min_dist){
-                    closest_agent_id=a.getID();
-                    min_dist=temp_dist;
-                    ag=a;
+                double temp = ga.shortestPathDist(agent_path.get(a.getID()).getLast(),p.get_edge().getSrc());
+                if (temp<min_dist){
+                    closest=a;
+                    min_dist=temp;
                 }
             }
-            List<node_data> path = ga.shortestPath(agent_path.get(closest_agent_id).getLast(), p.get_edge().getSrc());;
-
-            System.out.println("adding paths: " + path.toString() + "   to agent path: " + agent_path.get(closest_agent_id).toString());
-            Iterator<node_data> itr = path.iterator();
-            itr.next();
-            while (itr.hasNext()){
-                node_data n = itr.next();
-                agent_path.get(closest_agent_id).add(n.getKey());
-            }
-            agent_path.get(closest_agent_id).add(p.get_edge().getDest());
-            p.setAssignedAgent(closest_agent_id);
+            findMiddleRoad(p,closest);
         }
     }
 
+    public void findMiddleRoad(CL_Pokemon p, CL_Agent a){
+        if (agent_path.get(a.getID()).isEmpty()) emptyPathFiller(a);
+        double link_dist = ga.shortestPathDist(agent_path.get(a.getID()).getLast(),p.get_edge().getSrc())+p.get_edge().getWeight();
+        List<Integer> path = agent_path.get(a.getID());
+        int outNodeIndex=-1, inNodeIndex=-1;
+        double min_dist=Double.MAX_VALUE;
+        for (int i=0;i<path.size()-1;i++){
+            for (int j=i+1;j<path.size();j++){
+                double temp = ga.shortestPathDist(path.get(i),p.get_edge().getSrc()) + p.get_edge().getWeight() + ga.shortestPathDist(p.get_edge().getDest(),path.get(j));
+                if (temp<min_dist){
+                    min_dist=temp;
+                    outNodeIndex=i;
+                    inNodeIndex=j;
+                }
+            }
+        }
+        if (min_dist<link_dist) {
+            List<node_data> path1 = ga.shortestPath(path.get(outNodeIndex), p.get_edge().getSrc());
+            List<node_data> path2 = ga.shortestPath(p.get_edge().getDest(), path.get(inNodeIndex));
+            System.out.println("agent number: " + a.getID() + " old path is: " + agent_path.get(a.getID()).toString());
+            System.out.println("agent number: " + a.getID() + " new path1 is: " + path1.toString());
+            System.out.println("agent number: " + a.getID() + " new path2 is: " + path2.toString());
+            path1.remove(0);
+            path2.remove(path2.size() - 1);
+            for (int i=inNodeIndex; i != outNodeIndex+1; i--) {
+                try {
+                    agent_path.get(a.getID()).remove(outNodeIndex+1);
+                }catch (Exception e){
+                    System.out.println("path to remove from " +agent_path.get(a.getID()).toString() + " indexs: out: "+ outNodeIndex + ", in: " +inNodeIndex);
+                    agent_path.get(a.getID()).remove(i);
+                }
+            }
+            for (int i = path2.size()-1; 0 <= i; i--) {
+                node_data n = path2.get(i);
+                agent_path.get(a.getID()).add(outNodeIndex + 1, n.getKey());
+            }
+            for (int i = path1.size()-1; 0 <= i; i--) {
+                node_data n = path1.get(i);
+                agent_path.get(a.getID()).add(outNodeIndex + 1, n.getKey());
+            }
+            System.out.println("agent number: " + a.getID() + " new path is: " + agent_path.get(a.getID()).toString());
+        }else {
+            System.out.println("agent number: " + a.getID() + " old path is: " + agent_path.get(a.getID()).toString());
+            System.out.println("agent number: " + a.getID() + " is on node: " + a.getSrcNode() + " and going to "+ a.getNextNode());
+            if (agent_path.get(a.getID()).isEmpty()) emptyPathFiller(a);
+            List<node_data> path_from_end = ga.shortestPath(agent_path.get(a.getID()).getLast(), p.get_edge().getSrc());
+            for (node_data n : path_from_end){
+                agent_path.get(a.getID()).add(n.getKey());
+            }
+            agent_path.get(a.getID()).add(p.get_edge().getDest());
+            a.set_curr_fruit(p);
+            System.out.println("agent number: " + a.getID() + " new path that link to the end is: " + agent_path.get(a.getID()).toString());
+        }
+        p.setAssignedAgent(a.getID());
+    }
+
+    public void pathCutter(){
+        agentloop:
+        for (CL_Agent a: ar.getAgents()){
+            int try_to_cut=-1,left=-1,right=-1;
+            List<Integer> path = agent_path.get(a.getID());
+            for (int i=0;i<path.size()-1;i++){
+                for (int j=i+1;j<path.size();j++){
+                    if (path.get(i)==path.get(j)) {
+                        try_to_cut=path.get(i);
+                        left=i;
+                        right=j;
+                        System.out.println("can cut agent: "+ a.getID() + " path for node: "+ try_to_cut + ", the path is: "+ path.toString());
+                    }
+                }
+            }
+            if (try_to_cut==-1) continue agentloop;
+            pokelook:
+            for (CL_Pokemon p : ar.getPokemons()){
+                int poke_src = p.get_edge().getSrc(),poke_dest=p.get_edge().getDest();
+                for (int i=left;i<right;i++){
+                    if (poke_src==path.get(i) && poke_dest==path.get(i+1)) {
+                        continue agentloop;
+                    }
+                }
+            }
+            System.out.println("can cut agent: "+ a.getID() + " path for node: "+ try_to_cut + ", the path is: "+ agent_path.get(a.getID()).toString());
+            left=0;
+            while (agent_path.get(a.getID()).get(left)!=try_to_cut) {
+                left++;
+                if (agent_path.get(a.getID()).size()==left) continue agentloop;
+            }
+            while (agent_path.get(a.getID()).get(left)!=try_to_cut){
+                agent_path.get(a.getID()).remove(left);
+            }
+        }
+    }
+
+    public void setAgentMove(){
+        for (CL_Agent a : ar.getAgents()){
+            if (a.getNextNode()!=-1) continue;
+            if (!agent_path.get(a.getID()).isEmpty()) {
+                int next=agent_path.get(a.getID()).remove();
+                boolean flag = true;
+                while(next==a.getSrcNode() && !agent_path.get(a.getID()).isEmpty()) {
+                    next = agent_path.get(a.getID()).remove();
+                }
+                if (next==a.getNextNode()) flag=false;
+                if (flag) {
+                    game.chooseNextEdge(a.getID(), next);
+                }else {
+                    System.out.println("agent can't be moved");
+                    continue;
+                }
+                System.out.println("agent num: " + a.getID()+" is going from "+ a.getSrcNode() + " to "+ next);
+                System.out.println("agent num: "+ a.getID() + " path is: "+ agent_path.get(a.getID()).toString());
+            }
+        }
+    }
 
     public void setUpdatedAgents(){
-        ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
+        List<CL_Agent> update = Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph());
+        for (CL_Agent a: update){
+            for (CL_Agent b : ar.getAgents()){
+                if (a.getID()==b.getID()){
+                    if (ar.getPokemons().contains(b.get_curr_fruit())){
+                        a.set_curr_fruit(b.get_curr_fruit());
+                    }else a.set_curr_fruit(null);
+                }
+            }
+        }
+        ar.setAgents(update);
     }
+
     public void setUpdatedPokemons(){
         //System.out.println(game.getPokemons());
         List<CL_Pokemon> pokemons = Agent_Graph_Algo.json2Pokemons(game.getPokemons());
@@ -233,29 +251,12 @@ public class Game {
             boolean found=false;
             for (CL_Pokemon c : ar.getPokemons()){
                 if (p.equals(c)) {
-                    System.out.println("equals pokemons found: [" + c.get_edge().getSrc()+","+c.get_edge().getDest()+"]");
+                    //System.out.println("equals pokemons found: [" + c.get_edge().getSrc()+","+c.get_edge().getDest()+"]");
                     found=true;
                     update.add(c);
                 }
             }
             if (!found) update.add(p);
-        }
-        ar.setPokemons(update);
-    }
-
-    private void pokemonEating(){
-        List<CL_Pokemon> toDelete = new ArrayList<>();
-        for (CL_Agent agent:ar.getAgents()){
-            for (CL_Pokemon poke:ar.getPokemons()){
-                if (agent.getSrcNode()==poke.get_edge().getSrc() &&
-                        agent.getNextNode()==poke.get_edge().getDest()){
-                    toDelete.add(poke);
-                }
-            }
-        }
-        List<CL_Pokemon> update = ar.getPokemons();
-        for (CL_Pokemon p : toDelete){
-            update.remove(p);
         }
         ar.setPokemons(update);
     }
@@ -292,6 +293,35 @@ public class Game {
         }
     }
 
+
+    private void emptyPathFiller(CL_Agent a){
+        if (a.getNextNode()==-1) {
+            agent_path.get(a.getID()).add(a.getSrcNode());
+        }else agent_path.get(a.getID()).add(a.getNextNode());
+    }
+
+    private class ServerTalker implements Runnable{
+        @Override
+        public void run() {
+            while(game.isRunning()) {
+                setUpdatedPokemons();
+                setUpdatedAgents();
+                setAgentMove();
+                game.move();
+                win.repaint();
+                sleep(50);
+            }
+        }
+    }
+
+    private class Cutter implements Runnable{
+        @Override
+        public void run() {
+            while(game.isRunning()){
+                pathCutter();
+            }
+        }
+    }
 
     private class PokemonComperator implements Comparator<CL_Pokemon>{
         private static final double EPS=0.0001;

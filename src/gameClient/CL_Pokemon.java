@@ -95,8 +95,8 @@ public class CL_Pokemon {
 		}
 		CL_Pokemon p = (CL_Pokemon) o;
 		if (this.get_edge().getSrc()!=p.get_edge().getSrc()) {
-			System.out.println("edges source are different: this src=" + this.get_edge().getSrc() + ", p src="+ p.get_edge().getSrc());
-			System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
+			//System.out.println("edges source are different: this src=" + this.get_edge().getSrc() + ", p src="+ p.get_edge().getSrc());
+			//System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
 			return false;
 		}
 		if (this.get_edge().getDest()!=p.get_edge().getDest()) {
@@ -110,8 +110,8 @@ public class CL_Pokemon {
 			return false;
 		}
 		if (!this.getLocation().equals(p.getLocation())) {
-			System.out.println("location are differents");
-			System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
+			//System.out.println("location are differents");
+			//System.out.println("this=("+this.toPString()+"), p=("+p.toPString()+")");
 			return false;
 		}
 		if (Math.abs(this.getValue()-p.getValue())>0.0001) {
