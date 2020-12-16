@@ -16,6 +16,12 @@ import java.util.*;
 
 public class DWGraph_Algo implements dw_graph_algorithms {
     private directed_weighted_graph graph;
+    public DWGraph_Algo(){
+        graph=new DWGraph_DS();
+    }
+    public DWGraph_Algo(directed_weighted_graph g){
+        graph=g;
+    }
     /**
      * Init the graph on which this set of algorithms operates on.
      *
@@ -50,6 +56,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
             node_data v = new NodeData(n.getKey());
             v.setInfo(n.getInfo());
             v.setTag(n.getTag());
+            v.setLocation(new Point3D(n.getLocation().x(),n.getLocation().y(),n.getLocation().z()));
             g.addNode(v);
         }
         itr = graph.getV().iterator();
@@ -333,13 +340,19 @@ public class DWGraph_Algo implements dw_graph_algorithms {
      */
     private class NodeComperator implements Comparator<node_data> {
         private final Double EPS = 0.00001;
+        private final Double AMV = Double.MAX_VALUE-1;
 
         @Override
         public int compare(node_data o1, node_data o2) {
+            /*
             if (o1.getWeight()-o2.getWeight()<-EPS) return -1;
             if (o1.getWeight()-o2.getWeight()<EPS) return 0;
             if (o1.getWeight()-o2.getWeight()>EPS) return 1;
-            throw new RuntimeException("Error: no condition met");
+            throw new RuntimeException("Error: no condition met, node1 weight="+o1.getWeight()+" node2 weight="+o2.getWeight());
+             */
+            if (o1.getWeight()<o2.getWeight()) return -1;
+            if (o1.getWeight()>o2.getWeight()) return 1;
+            return 0;
         }
     }
 }

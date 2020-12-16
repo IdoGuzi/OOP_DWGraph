@@ -10,6 +10,10 @@ import org.json.JSONObject;
 
 import java.util.*;
 
+/**
+ * This class is the brain of the game.
+ * it's loading the game from the server and running the game
+ */
 public class Game {
     private int level;
     private game_service game;
@@ -48,15 +52,18 @@ public class Game {
         }
         for (CL_Pokemon p : ar.getPokemons()){
             for (CL_Agent a : ar.getAgents())
-            if (p.get_edge().getSrc()==a.getSrcNode()){
-                p.setAssignedAgent(a.getID());
-                a.set_curr_fruit(p);
-                agent_path.get(a.getID()).add(p.get_edge().getDest());
-            }
+                if (p.get_edge().getSrc()==a.getSrcNode()){
+                    p.setAssignedAgent(a.getID());
+                    a.set_curr_fruit(p);
+                    agent_path.get(a.getID()).add(p.get_edge().getDest());
+                }
         }
     }
 
-
+    /**
+     * this is the main method of the class,
+     * it's starting the game after loading the level from the server
+     */
     public void play(){
         Thread server = new Thread(new ServerTalker());
         //Thread cutter = new Thread(new Cutter());
@@ -74,6 +81,9 @@ public class Game {
         System.out.println(game.toString());
     }
 
+    /**
+     * this method decides which pokemon is the most valueble and find the closest agent
+     */
     public void pathFinder(){
         PriorityQueue<CL_Pokemon> queue= new PriorityQueue<>(1,new PokemonComperator());
         queue.addAll(ar.getPokemons());
@@ -111,6 +121,11 @@ public class Game {
         }
     }
 
+    /**
+     * this method find the best path for the agent to get to the pokemon through the already existing path of the agent
+     * @param p - the pokemon to bee added for the agent
+     * @param a - agent that this function append his path
+     */
     public void findMiddleRoad(CL_Pokemon p, CL_Agent a){
         if (agent_path.get(a.getID()).isEmpty()) emptyPathFiller(a);
         double link_dist = ga.shortestPathDist(agent_path.get(a.getID()).getLast(),p.get_edge().getSrc())+p.get_edge().getWeight();
@@ -167,43 +182,10 @@ public class Game {
         p.setAssignedAgent(a.getID());
     }
 
-    public void pathCutter(){
-        agentloop:
-        for (CL_Agent a: ar.getAgents()){
-            int try_to_cut=-1,left=-1,right=-1;
-            List<Integer> path = agent_path.get(a.getID());
-            for (int i=0;i<path.size()-1;i++){
-                for (int j=i+1;j<path.size();j++){
-                    if (path.get(i)==path.get(j)) {
-                        try_to_cut=path.get(i);
-                        left=i;
-                        right=j;
-                        System.out.println("can cut agent: "+ a.getID() + " path for node: "+ try_to_cut + ", the path is: "+ path.toString());
-                    }
-                }
-            }
-            if (try_to_cut==-1) continue agentloop;
-            pokelook:
-            for (CL_Pokemon p : ar.getPokemons()){
-                int poke_src = p.get_edge().getSrc(),poke_dest=p.get_edge().getDest();
-                for (int i=left;i<right;i++){
-                    if (poke_src==path.get(i) && poke_dest==path.get(i+1)) {
-                        continue agentloop;
-                    }
-                }
-            }
-            System.out.println("can cut agent: "+ a.getID() + " path for node: "+ try_to_cut + ", the path is: "+ agent_path.get(a.getID()).toString());
-            left=0;
-            while (agent_path.get(a.getID()).get(left)!=try_to_cut) {
-                left++;
-                if (agent_path.get(a.getID()).size()==left) continue agentloop;
-            }
-            while (agent_path.get(a.getID()).get(left)!=try_to_cut){
-                agent_path.get(a.getID()).remove(left);
-            }
-        }
-    }
 
+    /**
+     * this method sets agents next node to go to for the server call
+     */
     public void setAgentMove(){
         for (CL_Agent a : ar.getAgents()){
             if (a.getNextNode()!=-1) continue;
@@ -226,6 +208,9 @@ public class Game {
         }
     }
 
+    /**
+     * update the agents from the server
+     */
     public void setUpdatedAgents(){
         List<CL_Agent> update = Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph());
         for (CL_Agent a: update){
@@ -240,6 +225,9 @@ public class Game {
         ar.setAgents(update);
     }
 
+    /**
+     * update the pokemons from the sever
+     */
     public void setUpdatedPokemons(){
         //System.out.println(game.getPokemons());
         List<CL_Pokemon> pokemons = Agent_Graph_Algo.json2Pokemons(game.getPokemons());
@@ -261,6 +249,10 @@ public class Game {
         ar.setPokemons(update);
     }
 
+    /**
+     * this method stop the running thread for the provided time (1000 is 1 second)
+     * @param time
+     */
     private void sleep(int time){
         try {
             Thread.sleep(time);
@@ -270,6 +262,10 @@ public class Game {
     }
 
 
+    /**
+     * adds agents to the server by the most valueble pokemon currently known
+     * @param agent_num
+     */
     private void addAgents(int agent_num){
         PriorityQueue<CL_Pokemon> queue = new PriorityQueue<>(1,new PokemonComperator());
         queue.addAll(ar.getPokemons());
@@ -294,12 +290,19 @@ public class Game {
     }
 
 
+    /**
+     * fill an agent path with the node the agent is on/ going to
+     * @param a
+     */
     private void emptyPathFiller(CL_Agent a){
         if (a.getNextNode()==-1) {
             agent_path.get(a.getID()).add(a.getSrcNode());
         }else agent_path.get(a.getID()).add(a.getNextNode());
     }
 
+    /**
+     * private class that should by run on a thread that communicates with the game server
+     */
     private class ServerTalker implements Runnable{
         @Override
         public void run() {
@@ -314,15 +317,11 @@ public class Game {
         }
     }
 
-    private class Cutter implements Runnable{
-        @Override
-        public void run() {
-            while(game.isRunning()){
-                pathCutter();
-            }
-        }
-    }
 
+    /**
+     * comperator for pokemons
+     * if p1 cost is higher than p2 cost return value positive
+     */
     private class PokemonComperator implements Comparator<CL_Pokemon>{
         private static final double EPS=0.0001;
         public PokemonComperator(){}
