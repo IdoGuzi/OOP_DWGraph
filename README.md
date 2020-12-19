@@ -16,7 +16,13 @@ Use the following class to run the game
 ```bash
 EX2.java
 ```
-This class will run a GUI as well.  
+This class will run a GUI as well.
+
+An other good option is to run the  
+```bash
+EX2.jar
+```
+This file will run a GUI as well.
 
 
 ## Usage
