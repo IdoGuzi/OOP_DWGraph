@@ -21,43 +21,16 @@ public class Game {
     private MyFrame win;
     private HashMap<Integer, LinkedList<Integer>> agent_path;
     private dw_graph_algorithms ga;
+    private long id;
 
     public Game(int lvl){
-        this.level=lvl;
-        this.game= Game_Server_Ex2.getServer(this.level);
-        System.out.println(game);
-        this.ar=new Arena();
-        DWGraph_Algo ga = new DWGraph_Algo();
-        System.out.println(game.getGraph());
-        ga.loadFromString(game.getGraph());
-        this.ar.setGraph(ga.getGraph());
-        this.ga = ga;
-        System.out.println(game.getPokemons());
-        this.ar.setPokemons(Agent_Graph_Algo.json2Pokemons(game.getPokemons()));
-        for (int i=0;i<ar.getPokemons().size();i++) Agent_Graph_Algo.updateEdge(ar.getPokemons().get(i),ar.getGraph());
-        try {
-            int agent_num = new JSONObject(game.toString()).getJSONObject("GameServer").getInt("agents");
-            addAgents(agent_num);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        this.ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
-        System.out.println(game.getAgents());
-        this.win=new MyFrame("my game");
-        this.win.update(ar);
-        this.win.setSize(1000,700);
-        this.agent_path = new HashMap<>();
-        for (CL_Agent a : ar.getAgents()){
-            agent_path.put(a.getID(),new LinkedList<>());
-        }
-        for (CL_Pokemon p : ar.getPokemons()){
-            for (CL_Agent a : ar.getAgents())
-                if (p.get_edge().getSrc()==a.getSrcNode()){
-                    p.setAssignedAgent(a.getID());
-                    a.set_curr_fruit(p);
-                    agent_path.get(a.getID()).add(p.get_edge().getDest());
-                }
-        }
+        id=-1;
+        init(lvl);
+    }
+
+    public Game(Long id,int level){
+        this.id=id;
+        init(level);
     }
 
     /**
@@ -69,6 +42,9 @@ public class Game {
         //Thread cutter = new Thread(new Cutter());
         win.show();
         sleep(1000);
+        if (id!=-1) {
+            game.login(id);
+        }
         game.startGame();
         server.start();
         //cutter.start();
@@ -196,6 +172,10 @@ public class Game {
                     next = agent_path.get(a.getID()).remove();
                 }
                 if (next==a.getNextNode()) flag=false;
+                if (ga.getGraph().getEdge(a.getSrcNode(),next)==null) {
+                    agent_path.get(a.getID()).clear();
+                    flag=false;
+                }
                 if (flag) {
                     game.chooseNextEdge(a.getID(), next);
                 }else {
@@ -317,6 +297,44 @@ public class Game {
         }
     }
 
+
+    private void init (int lvl){
+        this.level=lvl;
+        this.game= Game_Server_Ex2.getServer(this.level);
+        System.out.println(game);
+        this.ar=new Arena();
+        DWGraph_Algo ga = new DWGraph_Algo();
+        System.out.println(game.getGraph());
+        ga.loadFromString(game.getGraph());
+        this.ar.setGraph(ga.getGraph());
+        this.ga = ga;
+        System.out.println(game.getPokemons());
+        this.ar.setPokemons(Agent_Graph_Algo.json2Pokemons(game.getPokemons()));
+        for (int i=0;i<ar.getPokemons().size();i++) Agent_Graph_Algo.updateEdge(ar.getPokemons().get(i),ar.getGraph());
+        try {
+            int agent_num = new JSONObject(game.toString()).getJSONObject("GameServer").getInt("agents");
+            addAgents(agent_num);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        this.ar.setAgents(Agent_Graph_Algo.getAgents(game.getAgents(),ar.getGraph()));
+        System.out.println(game.getAgents());
+        this.win=new MyFrame("my game");
+        this.win.update(ar);
+        this.win.setSize(1000,700);
+        this.agent_path = new HashMap<>();
+        for (CL_Agent a : ar.getAgents()){
+            agent_path.put(a.getID(),new LinkedList<>());
+        }
+        for (CL_Pokemon p : ar.getPokemons()){
+            for (CL_Agent a : ar.getAgents())
+                if (p.get_edge().getSrc()==a.getSrcNode()){
+                    p.setAssignedAgent(a.getID());
+                    a.set_curr_fruit(p);
+                    agent_path.get(a.getID()).add(p.get_edge().getDest());
+                }
+        }
+    }
 
     /**
      * comperator for pokemons

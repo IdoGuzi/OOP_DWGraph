@@ -14,9 +14,24 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Ex2 {
-
     public static void main(String[] args){
-        Game g = new Game(23);
+        long id;
+        int level=0;
+        Game g;
+        System.out.println(args.length);
+        System.out.println(args[0]);
+        if (args.length==2) {
+            id = Long.parseLong(args[0]);
+            level=Integer.parseInt(args[1]);
+            g = new Game(id ,level);
+        }else{
+            if (args.length<=1) {
+                level = Integer.parseInt(args[0]);
+                g = new Game(level);
+            }else {
+                throw new RuntimeException("ERROR: wrong input format");
+            }
+        }
         g.play();
 
 
