@@ -6,7 +6,7 @@ The object of the game is to earn as many points as possible while eating Pokemo
 In fact the arena is a directed weighted graph
 
 ## Lets eat some Pokemons
-![](https://github.com/IdoGuzi/OOP_DWGraph/blob/master/pokeatt.jpeg =1000x700)
+![](https://github.com/IdoGuzi/OOP_DWGraph/blob/master/pokeatt.jpeg) =1000x700
 
 ## Description
 
