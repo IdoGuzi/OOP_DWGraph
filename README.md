@@ -14,6 +14,12 @@ Our implementation communicates with the university server. We get different sta
 
 ## Installation and Running
 
+download the repo as a zip and extract it, or using git:
+
+```bash
+git clone https://github.com/IdoGuzi/OOP_DWGraph.git
+```
+
 Use the following class to run the game 
 
 
@@ -24,8 +30,10 @@ This class will run a GUI as well.
 
 An other good option is to run the  
 ```bash
-EX2.jar
+java -jar Ex2.jar <level>
 ```
+where level is a number from 0-23
+
 This file will run a GUI as well.
 
 
