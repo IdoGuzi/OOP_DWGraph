@@ -100,6 +100,56 @@ public class DWGraph_Algo implements dw_graph_algorithms {
     }
 
     /**
+     * Find the Strongly Connected Component of node id in the graph.
+     * @param id - The node id
+     * @return the list of all the nodes in the SCC, if graph is null or node is not in the graph returns empty list.
+     */
+    @Override
+    public List<node_data> connectedComponent(int id) {
+        List<node_data> scc = new ArrayList<>();
+        HashMap<Integer,Boolean> tmp = new HashMap<>();
+        if (graph==null) return scc;
+        if (graph.getNode(id)==null) return scc;
+        Dijksta(id);
+        for (node_data n : graph.getV()){
+            if (n.getWeight()-Double.MAX_VALUE<0.0001) {
+                tmp.put(n.getKey(),true);
+            }
+        }
+        directed_weighted_graph old = graph;
+        init(graph_transpose());
+        Dijksta(id);
+        for (node_data n : graph.getV()){
+            if (n.getWeight()-Double.MAX_VALUE<0.0001 && tmp.get(n.getKey())){
+                scc.add(n);
+            }
+        }
+        return scc;
+    }
+
+    /**
+     * Finds all the Strongly Connected Component(SCC) in the graph.
+     * @return - The list all SCC, if graph is null returns empty list.
+     */
+    @Override
+    public List<List<node_data>> connectedComponents() {
+        HashMap<Integer,Boolean> seen = new HashMap<>();
+        List<List<node_data>> components = new ArrayList<>();
+        for (node_data n : graph.getV()){
+            seen.put(n.getKey(),false);
+        }
+        for (node_data n : graph.getV()){
+            if (seen.get(n.getKey())) continue;
+            List<node_data> tmp = connectedComponent(n.getKey());
+            for (node_data v: tmp){
+                seen.put(v.getKey(),true);
+            }
+            components.add(tmp);
+        }
+        return components;
+    }
+
+    /**
      * returns the length of the shortest path between src to dest
      * Note: if no such path --> returns -1
      *

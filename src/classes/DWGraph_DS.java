@@ -134,9 +134,7 @@ public class DWGraph_DS implements directed_weighted_graph {
         if(!nodes.containsKey(key)){
             return null;
         }
-        for (int neighbor : inEdges.get(key)){
-            removeEdge(neighbor,key);
-        }
+        inEdges.remove(key);
         int size = edges.get(key).size();
         edges.remove(key);
         edges_size -= size;
@@ -203,7 +201,7 @@ public class DWGraph_DS implements directed_weighted_graph {
     public boolean equals(Object o){
         if (o==null) return false;
         if (!(o instanceof directed_weighted_graph)) return false;
-        directed_weighted_graph g = (directed_weighted_graph) o; // check if casting works
+        directed_weighted_graph g = (DWGraph_DS) o; // check if casting works
         if (nodeSize()!=g.nodeSize()) return false;
         if (edgeSize()!=g.edgeSize()) return false;
         Iterator<node_data> itr = getV().iterator();
@@ -216,7 +214,10 @@ public class DWGraph_DS implements directed_weighted_graph {
                 node_data v = getNode(e.getDest());
                 if (g.getNode(v.getKey())==null) return false;
                 if (g.getEdge(n.getKey(),v.getKey())==null) return false;
-                if (getEdge(n.getKey(),v.getKey())!=g.getEdge(n.getKey(),v.getKey())) return false;
+                edge_data e2 = g.getEdge(n.getKey(),v.getKey());
+                if (getEdge(n.getKey(),v.getKey()).equals(g.getEdge(n.getKey(),v.getKey()))) {
+                    return false;
+                }
             }
         }
         return true;
@@ -240,6 +241,17 @@ public class DWGraph_DS implements directed_weighted_graph {
             this.weight = w;
         }
         //should tame care the "if has edge" option
+
+        @Override
+        public boolean equals(Object o){
+            if (o==null) return false;
+            if (!(o instanceof edge_data)) return false;
+            edge_data e = (EdgeDate) o;
+            if (e.getSrc()!=src) return false;
+            if (e.getDest()!=dest) return false;
+            if (e.getWeight()-weight<0.00001) return false;
+            return true;
+        }
 
         /**
          * The id of the source node of this edge.

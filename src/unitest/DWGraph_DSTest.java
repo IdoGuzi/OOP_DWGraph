@@ -52,6 +52,21 @@ class DWGraph_DSTest {
         return g;
     }
 
+    @Test
+    void test_equals(){
+        directed_weighted_graph g1 = new DWGraph_DS();
+        directed_weighted_graph g2 = new DWGraph_DS();
+        for (int i=0;i<5;i++){
+            g1.addNode(new NodeData(i));
+            g2.addNode(new NodeData(i));
+        }
+        g1.connect(0,1,3.45);
+        g2.connect(0,1,3.45);
+        g1.connect(2,3,2.523);
+        g2.connect(2,3,2.523);
+        assertTrue(g1.equals(g2));
+    }
+
     /**
      * We add and removes nodes and trying to remove the same node
      */

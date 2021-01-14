@@ -36,6 +36,23 @@ public interface dw_graph_algorithms {
      * @return
      */
     public boolean isConnected();
+
+    /**
+     * Finds the Strongly Connected Component(SCC) that node id is a part of.
+     * Notes:
+     * If the graph is Null or id is not in the graph, the function should return an empty list []
+     * @param id - The node id
+     * @return -  The list of nodes in the SCC
+     */
+    public List<node_data> connectedComponent(int id);
+
+    /**
+     * Finds all the Strongly Connected Component(SCC) in the graph.
+     * Notes:
+     * If the graph is None the function should return an empty list []
+     * @return - The list all SCC
+     */
+    public List<List<node_data>> connectedComponents();
     /**
      * returns the length of the shortest path between src to dest
      * Note: if no such path --> returns -1
