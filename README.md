@@ -4,11 +4,21 @@ This game is a module in our OOP course at Ariel university writes in JAVA.
 The object of the game is to earn as many points as possible while eating Pokemon using smart agents.
 
 In fact the arena is a directed weighted graph
+
+## Lets eat some Pokemons
+![](https://github.com/IdoGuzi/OOP_DWGraph/blob/master/pokeatt.jpeg)
+
 ## Description
 
 Our implementation communicates with the university server. We get different stages from the server where each stage includes a different arena, number of Pokemons, and the amount of agents allowed. Our main goal is to earn as many points as possible when there are some important variables that determine the score. For example, the amount of calls to the server, the number of Pokemons we ate, the points each Pokemon is worth, and so on. The game ends after a pre-determined time which is also received from the server, hopefully we will earn as many points as possible at the given time.
 
 ## Installation and Running
+
+download the repo as a zip and extract it, or using git:
+
+```bash
+git clone https://github.com/IdoGuzi/OOP_DWGraph.git
+```
 
 Use the following class to run the game 
 
@@ -16,7 +26,15 @@ Use the following class to run the game
 ```bash
 EX2.java
 ```
-This class will run a GUI as well.  
+This class will run a GUI as well.
+
+An other good option is to run the  
+```bash
+java -jar Ex2.jar <level>
+```
+where level is a number from 0-23
+
+This file will run a GUI as well.
 
 
 ## Usage
